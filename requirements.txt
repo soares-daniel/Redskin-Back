@@ -1,0 +1,2 @@
+SQLAlchemy~=2.0.15
+litestar~=2.0.0a7
