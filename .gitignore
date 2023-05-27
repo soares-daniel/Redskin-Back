@@ -12,3 +12,6 @@
 .idea/
 *.iml
 *.xml
+
+# Env
+.env
