@@ -2,7 +2,7 @@ import requests
 import random
 import string
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8000/api"
 
 
 def generate_random_string(length):
@@ -16,7 +16,7 @@ def generate_random_password(length):
 
 
 def create_user(username, password):
-    url = f"{BASE_URL}/users/"
+    url = f"{BASE_URL}/users"
     payload = {"username": username, "password": password}
     response = requests.post(url, json=payload)
     if response.status_code == 200:

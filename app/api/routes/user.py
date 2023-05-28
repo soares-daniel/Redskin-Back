@@ -56,7 +56,6 @@ async def get_user(
     """Get user by id"""
     try:
         db_user = await user_repo.get_user_by_id(user_id)
-        access_token = jwt_generator.generate_access_token(db_user)
 
     except EntityDoesNotExist:
         raise await http_404_exc_id_not_found_request(_id=user_id)
@@ -64,7 +63,7 @@ async def get_user(
     return UserInResponse(
         id=db_user.id,
         authorized_user=UserWithToken(
-            token=access_token,
+            token="",
             username=db_user.username,
             created_at=db_user.created_at,
             updated_at=db_user.updated_at,

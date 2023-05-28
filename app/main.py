@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -59,3 +60,6 @@ async def get_app_info():
 async def get_app_settings():
     """Get main env settings"""
     raise NotImplementedError
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

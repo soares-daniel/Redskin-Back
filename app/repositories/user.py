@@ -22,6 +22,7 @@ class UserRepository(BaseRepository):
                 hash_salt=new_user.hash_salt, new_password=user_create.password
             )
         )
+        new_user.created_at = sqlalchemy_functions.now()
 
         self.async_session.add(instance=new_user)
         await self.async_session.commit()

@@ -15,7 +15,6 @@ class JWTGenerator:
 
     @staticmethod
     def _generate_jwt_token(
-        self,
         *,
         jwt_data: dict[str, str],
         expires_delta: timedelta | None = None,
@@ -39,7 +38,7 @@ class JWTGenerator:
         )
 
     @staticmethod
-    def retrieve_details_from_token(self, token: str, secret_key: str) -> list[str]:
+    def retrieve_details_from_token(token: str, secret_key: str) -> list[str]:
         try:
             payload = jose_jwt.decode(token=token, key=secret_key, algorithms=[settings.JWT_ALGORITHM])
             jwt_user = JWTUser(username=payload["username"])
