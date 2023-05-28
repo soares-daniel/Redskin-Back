@@ -25,15 +25,17 @@ class BaseSettings(pydantic.BaseSettings):
     OPENAPI_PREFIX: str = ""
 
     # Database
+    DB_POSTGRES_URI: str = decouple.config("POSTGRES_URI", cast=str)
+    DB_POSTGRES_NAME: str = decouple.config("POSTGRES_NAME", cast=str)
     DB_POSTGRES_HOST: str = decouple.config("POSTGRES_HOST", cast=str)
     DB_POSTGRES_PORT: int = decouple.config("POSTGRES_PORT", cast=int)
     DB_POSTGRES_USER: str = decouple.config("POSTGRES_USER", cast=str)
     DB_POSTGRES_PASSWORD: str = decouple.config("POSTGRES_PASSWORD", cast=str)
     DB_POSTGRES_SCHEMA: str = decouple.config("POSTGRES_SCHEMA", cast=str)
-    DB_MAX_POOL_CONN: int = decouple.config("MAX_POOL_CONN", cast=int)
-    DB_POOL_SIZE: int = decouple.config("POOL_SIZE", cast=int)
-    DB_POOL_OVERFLOW: int = decouple.config("POOL_OVERFLOW", cast=int)
-    DB_TIMEOUT: int = decouple.config("TIMEOUT", cast=int)
+    DB_MAX_POOL_CON: int = decouple.config("DB_MAX_POOL_CON", cast=int)
+    DB_POOL_SIZE: int = decouple.config("DB_POOL_SIZE", cast=int)
+    DB_POOL_OVERFLOW: int = decouple.config("DB_POOL_OVERFLOW", cast=int)
+    DB_TIMEOUT: int = decouple.config("DB_TIMEOUT", cast=int)
 
     IS_DB_ECHO_LOG: bool = decouple.config("IS_DB_ECHO_LOG", cast=bool)  # type: ignore
     IS_DB_FORCE_ROLLBACK: bool = decouple.config("IS_DB_FORCE_ROLLBACK", cast=bool)  # type: ignore
@@ -80,7 +82,7 @@ class BaseSettings(pydantic.BaseSettings):
         validate_assignment: bool = True
 
     @property
-    def set_backend_app_attributes(self) -> dict[str, str | bool | None]:
+    def set_app_attributes(self) -> dict[str, str | bool | None]:
         """Set all `FastAPI` class' attributes."""
         return {
             "title": self.TITLE,

@@ -8,7 +8,7 @@ from app.config.manager import settings
 
 def init_app() -> FastAPI:
 
-    new_app = FastAPI(**settings.attributes)  # type: ignore
+    new_app = FastAPI(**settings.set_app_attributes)  # type: ignore
 
     new_app.add_middleware(
         CORSMiddleware,
@@ -39,17 +39,17 @@ async def get_health():
 @app.get("/info")
 async def get_app_info():
     """Get main app info"""
-    attributes = settings.attributes
+    attributes = settings.set_app_attributes
     info = {
-        "title": attributes.TITLE,
-        "version": attributes.VERSION,
-        "debug": attributes.DEBUG,
-        "description": attributes.DESCRIPTION,
-        "docs_url": attributes.DOCS_URL,
-        "openapi_url": attributes.OPENAPI_URL,
-        "redoc_url": attributes.REDOC_URL,
-        "openapi_prefix": attributes.OPENAPI_PREFIX,
-        "api_prefix": attributes.API_PREFIX,
+        "title": attributes.get("title"),
+        "version": attributes.get("version"),
+        "debug": attributes.get("debug"),
+        "description": attributes.get("description"),
+        "docs_url": attributes.get("docs_url"),
+        "openapi_url": attributes.get("openapi_url"),
+        "redoc_url": attributes.get("redoc_url"),
+        "openapi_prefix": attributes.get("openapi_prefix"),
+        "api_prefix": attributes.get("api_prefix"),
     }
 
     return info

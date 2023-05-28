@@ -7,11 +7,11 @@
 /dataSources/
 /dataSources.local.xml
 /misc.xml
-
 # IDEA
 .idea/
 *.iml
 *.xml
-
 # Env
 .env
+# Cache
+**/__pycache__/

@@ -13,7 +13,7 @@ from app.config.manager import settings
 class AsyncDatabase:
     def __init__(self):
         self.postgres_uri: PostgresDsn = PostgresDsn(
-            url=f"{settings.DB_POSTGRES_SCHEMA}://{settings.DB_POSTGRES_USENRAME}:{settings.DB_POSTGRES_PASSWORD}@{settings.DB_POSTGRES_HOST}:{settings.DB_POSTGRES_PORT}/{settings.DB_POSTGRES_NAME}",
+            url=settings.DB_POSTGRES_URI,
             scheme=settings.DB_POSTGRES_SCHEMA,
         )
         self.async_engine: SQLAlchemyAsyncEngine = create_sqlalchemy_async_engine(
