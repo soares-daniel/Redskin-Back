@@ -7,20 +7,17 @@ BASE_URL = "http://localhost:8000"
 
 def generate_random_string(length):
     letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for _ in range(length))
+    return "".join(random.choice(letters) for _ in range(length))
 
 
 def generate_random_password(length):
     chars = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(random.choice(chars) for _ in range(length))
+    return "".join(random.choice(chars) for _ in range(length))
 
 
 def create_user(username, password):
     url = f"{BASE_URL}/users/"
-    payload = {
-        "username": username,
-        "password": password
-    }
+    payload = {"username": username, "password": password}
     response = requests.post(url, json=payload)
     if response.status_code == 200:
         print(f"User created: username={username}, password={password}")
