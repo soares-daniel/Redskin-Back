@@ -12,11 +12,11 @@ class HashGenerator:
     def _get_hashing_salt(self) -> str:
         return self._hash_ctx_salt
 
-    def generate_password_salt(self) -> str:
+    @staticmethod
+    def generate_password_salt() -> str:
         """
         A function to generate a random salt.
         """
-        # Generate a random salt
         return secrets.token_hex(16)
 
     def generate_password_hash(self, salt: str, password: str) -> str:
