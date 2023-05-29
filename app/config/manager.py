@@ -11,6 +11,8 @@ from app.config.settings.testing import TestSettings
 
 class SettingsFactory:
     def __init__(self, environment: str):
+        if environment not in ["PROD", "DEV", "TEST"]:
+            raise ValueError(f"Invalid environment: {environment}")
         self.environment = environment
 
     def __call__(self) -> BaseSettings:

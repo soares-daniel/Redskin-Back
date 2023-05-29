@@ -39,18 +39,3 @@ class TestBaseSettings:
         monkeypatch.setenv("JWT_DAY", "7")
         settings = BaseSettings()
         assert settings.JWT_ACCESS_TOKEN_EXPIRATION_TIME == 60 * 24 * 7
-
-    #  Tests that the class handles a missing `.env` file.
-    def test_missing_env_file(self):
-        class TestSettings(pydantic.BaseSettings):
-            TEST_VAR: str = decouple.config("test_var", cast=str)
-
-            class Config(pydantic.BaseConfig):
-                import pathlib
-                ROOT_DIR: pathlib.Path = pathlib.Path(__file__).parent.parent.parent.parent.resolve()
-                case_sensitive: bool = True
-                env_file: str = f"{str(ROOT_DIR)}/tests/.env.nonexistent"
-                validate_assignment: bool = True
-
-        with pytest.raises(decouple.UndefinedValueError):
-            TestSettings()

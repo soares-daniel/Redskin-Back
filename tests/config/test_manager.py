@@ -35,16 +35,8 @@ class TestSettingsFactory:
     def test_create_settings_factory_object_with_invalid_environment(self):
         # Edge case test for creating a SettingsFactory object with an invalid environment string
         environment = "INVALID"
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as exc_info:
             SettingsFactory(environment)
-
-    #  Tests that a ProdSettings object is returned when an invalid environment string is provided to the SettingsFactory object.
-    def test_call_settings_factory_object_with_invalid_environment(self):
-        # Edge case test for calling a SettingsFactory object with an invalid environment string
-        environment = "INVALID"
-        settings_factory = SettingsFactory(environment)
-        settings = settings_factory()
-        assert isinstance(settings, ProdSettings)
 
     #  Tests that the function returns a valid instance of BaseSettings when called with a valid environment value.
     def test_get_settings_returns_valid_instance(self, monkeypatch):
