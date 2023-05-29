@@ -6,6 +6,7 @@ from sqlalchemy.sql import functions as sqlalchemy_functions
 
 from app.database.table import Base
 
+
 class User(Base):
     __tablename__ = "USER"
 
