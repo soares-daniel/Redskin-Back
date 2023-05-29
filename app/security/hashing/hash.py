@@ -1,3 +1,4 @@
+import secrets
 import hashlib
 import binascii
 from app.config.manager import settings
@@ -11,32 +12,29 @@ class HashGenerator:
     def _get_hashing_salt(self) -> str:
         return self._hash_ctx_salt
 
-    def generate_password_salt_hash(self, password: str) -> str:
+    def generate_password_salt(self) -> str:
         """
-        A function to generate a hash from SHA256 to append to the user password.
+        A function to generate a random salt.
         """
-        if not self._get_hashing_salt:
-            raise ValueError("Invalid salt value.")
-        dk = hashlib.pbkdf2_hmac('sha256', password.encode(), self._get_hashing_salt.encode(), 100000)
-        return binascii.hexlify(dk).decode()
+        # Generate a random salt
+        return secrets.token_hex(16)
 
-    def generate_password_hash(self, hash_salt: str, password: str) -> str:
+    def generate_password_hash(self, salt: str, password: str) -> str:
         """
-        A function that adds the user's password with the layer 1 SHA256 hash, before
-        hash it for the second time using SHA512 algorithm.
+        A function that adds the user's password with the salt, then hashes it using SHA512 algorithm.
         """
-        if not hash_salt or not password:
+        if not salt or not password:
             raise ValueError("Invalid salt or password value.")
-        dk = hashlib.pbkdf2_hmac('sha512', (hash_salt + password).encode(), self._get_hashing_salt.encode(), 100000)
+        dk = hashlib.pbkdf2_hmac('sha512', (salt + password).encode(), self._get_hashing_salt.encode(), 100000)
         return binascii.hexlify(dk).decode()
 
-    def is_password_verified(self, password: str, hashed_password: str) -> bool:
+    def is_password_verified(self, salt: str, password: str, hashed_password: str) -> bool:
         """
         A function that verifies whether the password matches the hashed password.
         """
         if not password or not hashed_password:
             raise ValueError("Invalid password or hash.")
-        return self.generate_password_hash(self.generate_password_salt_hash(password), password) == hashed_password
+        return self.generate_password_hash(salt, password) == hashed_password
 
 
 def get_hash_generator() -> HashGenerator:
