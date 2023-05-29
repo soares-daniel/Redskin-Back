@@ -6,8 +6,6 @@ pydantic==1.10.8
 pytz==2023.3
 requests==2.31.0
 SQLAlchemy==2.0.15
-asyncpg==0.27.0
-python-decouple==3.8
-python-dotenv==1
 uvicorn==0.22.0
-python-jose==3.3.0
+
+pytest==7.3.1
