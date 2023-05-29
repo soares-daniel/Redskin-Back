@@ -1,10 +1,7 @@
 import typing
 
 import fastapi
-from sqlalchemy.ext.asyncio import (
-    async_sessionmaker as sqlalchemy_async_sessionmaker,
-    AsyncSession as SQLAlchemyAsyncSession,
-)
+from sqlalchemy.ext.asyncio import AsyncSession as SQLAlchemyAsyncSession
 
 from app.api.dependencies.session import get_async_session
 from app.repositories.base import BaseRepository

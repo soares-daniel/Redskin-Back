@@ -19,7 +19,7 @@ class UserRepository(BaseRepository):
         new_user.set_hash_salt(hash_salt=pass_generator.generate_salt)
         new_user.set_hashed_password(
             hashed_password=pass_generator.generate_hashed_password(
-                hash_salt=new_user.hash_salt, new_password=user_create.password
+                salt=new_user.hash_salt, password=user_create.password
             )
         )
         new_user.created_at = sqlalchemy_functions.now()
@@ -62,7 +62,7 @@ class UserRepository(BaseRepository):
             raise EntityDoesNotExist(f"Wrong username")
 
         if not pass_generator.is_password_authenticated(
-            hash_salt=db_user.hash_salt,
+            salt=db_user.hash_salt,
             password=user_login.password,
             hashed_password=db_user.hashed_password,
         ):
@@ -91,7 +91,7 @@ class UserRepository(BaseRepository):
             update_stmt = update_stmt.values(
                 hash_salt=pass_generator.generate_salt,
                 hashed_password=pass_generator.generate_hashed_password(
-                    hash_salt=update_user.hash_salt, new_password=new_user_date["password"]
+                    salt=update_user.hash_salt, password=new_user_date["password"]
                 ),
             )
 
@@ -121,7 +121,7 @@ class UserRepository(BaseRepository):
         username_query = await self.async_session.execute(username_stmt)
         db_username = username_query.scalar()
 
-        if not credential_verifier.is_username_available(username=db_username):
+        if not credential_verifier.is_username_available(username=db_username, user_repo=self):
             raise EntityAlreadyExists(f"The username `{username}` is already taken!")
 
         return True
