@@ -1,8 +1,7 @@
-from datetime import datetime
+import datetime
 
 import sqlalchemy
 from sqlalchemy.orm import Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
-from sqlalchemy.sql import functions as sqlalchemy_functions
 
 from app.database.table import Base
 
@@ -30,11 +29,11 @@ class User(Base):
         sqlalchemy.Boolean,
         nullable=True,
         name="IS_ACTIVE")
-    created_at: SQLAlchemyMapped[datetime] = sqlalchemy_mapped_column(
+    created_at: SQLAlchemyMapped[datetime.datetime] = sqlalchemy_mapped_column(
         sqlalchemy.DateTime(timezone=True),
         nullable=True,
         name="CREATED_AT")
-    updated_at: SQLAlchemyMapped[datetime] = sqlalchemy_mapped_column(
+    updated_at: SQLAlchemyMapped[datetime.datetime] = sqlalchemy_mapped_column(
         sqlalchemy.DateTime(timezone=True),
         nullable=True,
         server_onupdate=sqlalchemy.schema.FetchedValue(for_update=True),

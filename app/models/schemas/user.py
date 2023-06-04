@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from app.models.schemas.base import BaseSchemaModel
 
@@ -21,8 +21,8 @@ class UserInLogin(BaseSchemaModel):
 class UserWithToken(BaseSchemaModel):
     token: str
     username: str
-    created_at: datetime
-    updated_at: datetime | None
+    created_at: datetime.datetime
+    updated_at: datetime.datetime | None
 
 
 class UserInResponse(BaseSchemaModel):

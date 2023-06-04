@@ -1,29 +1,24 @@
-import pydantic
-from fastapi import APIRouter, status, Depends
+import fastapi
 
+from app.api.dependencies.repository import get_repository
 from app.models.schemas.user import UserInCreate, UserInResponse, UserInUpdate, UserWithToken
 from app.repositories.user import UserRepository
-from app.api.dependencies.repository import get_repository
 from app.security.authorization.jwt_generator import jwt_generator
 from app.utilities.exceptions.database import EntityDoesNotExist, EntityAlreadyExists
-from app.utilities.exceptions.http.exc_404 import (
-    http_404_exc_id_not_found_request,
-    http_404_exc_username_not_found_request,
-)
-from app.utilities.exceptions.http.exc_400 import (
-    http_exc_400_credentials_bad_signup_request
-)
+from app.utilities.exceptions.http.exc_400 import http_exc_400_credentials_bad_signup_request
+from app.utilities.exceptions.http.exc_404 import http_404_exc_id_not_found_request
+from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = fastapi.APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get(
     path="",
     response_model=list[UserInResponse],
-    status_code=status.HTTP_200_OK,
+    status_code=fastapi.status.HTTP_200_OK,
 )
 async def get_users(
-        user_repo: UserRepository = Depends(get_repository(repo_type=UserRepository))
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
 ) -> list[UserInResponse]:
     """Get all users"""
     db_users = await user_repo.get_users()
@@ -47,11 +42,11 @@ async def get_users(
 @router.get(
     path="/{user_id}",
     response_model=UserInResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=fastapi.status.HTTP_200_OK,
 )
 async def get_user(
         user_id: int,
-        user_repo: UserRepository = Depends(get_repository(repo_type=UserRepository))
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
 ) -> UserInResponse:
     """Get user by id"""
     try:
@@ -74,11 +69,11 @@ async def get_user(
 @router.post(
     path="",
     response_model=UserInResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=fastapi.status.HTTP_201_CREATED,
 )
 async def create_user(
         user_create: UserInCreate,
-        user_repo: UserRepository = Depends(get_repository(repo_type=UserRepository))
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
 ) -> UserInResponse:
     """Create user"""
     try:
@@ -104,8 +99,53 @@ async def create_user(
 @router.put(
     path="/{user_id}",
     response_model=UserInResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=fastapi.status.HTTP_200_OK,
 )
-async def update_user(user_id: int, user: UserInUpdate):
+async def update_user(
+        user_id: int,
+        user: UserInUpdate,
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
+) -> UserInResponse:
     """Update user"""
+    try:
+        db_user = await user_repo.get_user_by_id(user_id)
+
+    except EntityDoesNotExist:
+        raise await http_404_exc_id_not_found_request(_id=user_id)
+
+    if user.username is not None:
+        try:
+            await user_repo.is_username_taken(username=user.username)
+
+        except EntityAlreadyExists:
+            raise await http_exc_400_credentials_bad_signup_request()
+
+    updated_user = await user_repo.update_user_by_id(user_id=user_id, user_update=user)
+
+    if updated_user is None:
+        raise await http_500_exc_internal_server_error()
+
+    access_token = jwt_generator.generate_access_token(user=updated_user)
+
+    return UserInResponse(
+        id=updated_user.id,
+        authorized_user=UserWithToken(
+            token=access_token,
+            username=updated_user.username,
+            created_at=updated_user.created_at,
+            updated_at=updated_user.updated_at,
+        )
+    )
+
+
+@router.delete(
+    path="/{user_id}",
+    response_model=UserInResponse,
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def delete_user(
+        user_id: int,
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
+) -> UserInResponse:
+    """Delete user"""
     raise NotImplementedError

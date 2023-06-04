@@ -71,7 +71,7 @@ class UserRepository(BaseRepository):
         return db_user
 
     async def update_user_by_id(self, user_id: int, user_update: UserInUpdate) -> User:
-        new_user_date = user_update.dict()
+        new_user_data = user_update.dict()
 
         select_stmt = sqlalchemy.select(User).where(User.id == user_id)
         query = await self.async_session.execute(statement=select_stmt)
@@ -84,14 +84,14 @@ class UserRepository(BaseRepository):
             .where(User.id == update_user.id)\
             .values(updated_at=sqlalchemy_functions.now())
 
-        if new_user_date.get("username"):
-            update_stmt = update_stmt.values(username=new_user_date["username"])
+        if new_user_data.get("username"):
+            update_stmt = update_stmt.values(username=new_user_data["username"])
 
-        if new_user_date.get("password"):
+        if new_user_data.get("password"):
             update_stmt = update_stmt.values(
                 hash_salt=pass_generator.generate_salt,
                 hashed_password=pass_generator.generate_hashed_password(
-                    salt=update_user.hash_salt, password=new_user_date["password"]
+                    salt=update_user.hash_salt, password=new_user_data["password"]
                 ),
             )
 
@@ -102,12 +102,12 @@ class UserRepository(BaseRepository):
         return update_user
 
     async def delete_user_by_id(self, user_id: int) -> bool:
-        select_stmt = sqlalchemy.select(User).where(User.id == id)
+        select_stmt = sqlalchemy.select(User).where(User.id == user_id)
         query = await self.async_session.execute(statement=select_stmt)
         delete_user = query.scalar()
 
         if not delete_user:
-            raise EntityDoesNotExist(f"User with id `{id}` does not exist!")
+            raise EntityDoesNotExist(f"User with id `{user_id}` does not exist!")
 
         stmt = sqlalchemy.delete(table=User).where(User.id == delete_user.id)
 
@@ -121,7 +121,7 @@ class UserRepository(BaseRepository):
         username_query = await self.async_session.execute(username_stmt)
         db_username = username_query.scalar()
 
-        if not credential_verifier.is_username_available(username=db_username, user_repo=self):
+        if not credential_verifier.is_username_available(username=db_username):
             raise EntityAlreadyExists(f"The username `{username}` is already taken!")
 
         return True
