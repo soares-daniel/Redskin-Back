@@ -14,7 +14,8 @@ class EventRepository(BaseRepository):
         """Create event"""
         new_event = Event(
             created_by=event_create.created_by,
-            name=event_create.name,
+            event_type=event_create.event_type,
+            title=event_create.title,
             description=event_create.description,
             start_date=event_create.start_date,
             end_date=event_create.end_date,

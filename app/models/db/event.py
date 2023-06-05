@@ -17,6 +17,10 @@ class Event(Base):
         foreign_key="USER.ID",
         nullable=False,
         name="CREATED_BY")
+    event_type: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
+        foreign_key="EVENT_TYPE.ID",
+        nullable=False,
+        name="EVENT_TYPE")
     title: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
         sqlalchemy.String(length=1024),
         nullable=False,

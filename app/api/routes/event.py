@@ -24,6 +24,7 @@ async def get_events(
         event = EventInResponse(
             id=db_event.id,
             created_by=db_event.created_by,
+            event_type=db_event.event_type,
             title=db_event.title,
             description=db_event.description,
             start_date=db_event.start_date,
@@ -55,6 +56,7 @@ async def get_event(
     return EventInResponse(
         id=db_event.id,
         created_by=db_event.created_by,
+        event_type=db_event.event_type,
         title=db_event.title,
         description=db_event.description,
         start_date=db_event.start_date,
@@ -79,6 +81,7 @@ async def create_event(
     return EventInResponse(
         id=db_event.id,
         created_by=db_event.created_by,
+        event_type=db_event.event_type,
         title=db_event.title,
         description=db_event.description,
         start_date=db_event.start_date,
@@ -113,6 +116,7 @@ async def update_event(
     return EventInResponse(
         id=updated_event.id,
         created_by=updated_event.created_by,
+        event_type=updated_event.event_type,
         title=updated_event.title,
         description=updated_event.description,
         start_date=updated_event.start_date,
