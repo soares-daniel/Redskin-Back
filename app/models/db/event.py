@@ -7,6 +7,7 @@ from app.database.table import Base
 
 
 class Event(Base):
+    """Event table."""
     __tablename__ = "EVENT"
 
     id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(

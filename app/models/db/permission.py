@@ -4,9 +4,9 @@ from sqlalchemy.orm import Mapped as SQLAlchemyMapped, mapped_column as sqlalche
 from app.database.table import Base
 
 
-class EventType(Base):
-    """Event type table."""
-    ___tablename__ = "EVENT_TYPE"
+class Permission(Base):
+    """Permission table."""
+    __tablename__ = "PERMISSION"
 
     id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
         primary_key=True,
@@ -16,9 +16,5 @@ class EventType(Base):
         sqlalchemy.String(length=1024),
         nullable=False,
         name="NAME")
-    description: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
-        sqlalchemy.String(length=1024),
-        nullable=True,
-        name="DESCRIPTION")
 
     __mapper_args__ = {"eager_defaults": True}

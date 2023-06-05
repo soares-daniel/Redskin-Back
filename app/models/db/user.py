@@ -7,6 +7,7 @@ from app.database.table import Base
 
 
 class User(Base):
+    """User table."""
     __tablename__ = "USER"
 
     id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
@@ -14,7 +15,7 @@ class User(Base):
         autoincrement=True,
         name="ID")
     username: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
-        sqlalchemy.String(length=1024),
+        sqlalchemy.String(length=50),
         nullable=True,
         name="USERNAME")
     hashed_password: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
