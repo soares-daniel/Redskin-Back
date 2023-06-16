@@ -3,6 +3,8 @@ import fastapi
 from app.api.dependencies.repository import get_repository
 from app.models.schemas.event import EventInCreate, EventInResponse, EventInUpdate
 from app.repositories.event import EventRepository
+from app.models.db.user import User
+from app.api.dependencies.oauth import get_current_user
 from app.utilities.exceptions.database import EntityDoesNotExist
 from app.utilities.exceptions.http.exc_404 import http_404_exc_id_not_found_request
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
@@ -15,6 +17,7 @@ router = fastapi.APIRouter(prefix="/events", tags=["events"])
     status_code=fastapi.status.HTTP_200_OK,
 )
 async def get_events(
+        current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> list[EventInResponse]:
     """Get all events"""
@@ -44,6 +47,7 @@ async def get_events(
 )
 async def get_event(
         event_id: int,
+        current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> EventInResponse:
     """Get event by id"""
@@ -73,6 +77,7 @@ async def get_event(
 )
 async def create_event(
         event_create: EventInCreate,
+        current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> EventInResponse:
     """Create new event"""
@@ -99,6 +104,7 @@ async def create_event(
 async def update_event(
         event_id: int,
         event_update: EventInUpdate,
+        current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> EventInResponse:
     """Update event"""
@@ -133,6 +139,7 @@ async def update_event(
 )
 async def delete_event(
         event_id: int,
+        current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> EventInResponse:
     """Delete event"""

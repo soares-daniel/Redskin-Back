@@ -51,6 +51,7 @@ class BaseSettings(pydantic.BaseSettings):
     JWT_HOUR: int = decouple.config("JWT_HOUR", cast=int)  # type: ignore
     JWT_DAY: int = decouple.config("JWT_DAY", cast=int)  # type: ignore
     JWT_ACCESS_TOKEN_EXPIRATION_TIME: int = JWT_MIN * JWT_HOUR * JWT_DAY
+    # TODO: ADD REFRESH TOKEN + IMPLEMENTATION
 
     IS_ALLOWED_CREDENTIALS: bool = decouple.config("IS_ALLOWED_CREDENTIALS", cast=bool)  # type: ignore
     ALLOWED_ORIGINS: list[str] = [

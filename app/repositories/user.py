@@ -124,3 +124,19 @@ class UserRepository(BaseRepository):
             raise EntityAlreadyExists(f"The username `{username}` is already taken!")
 
         return True
+
+    async def read_user_by_password_authentication(self, user_login: UserInLogin) -> User:
+        stmt = sqlalchemy.select(User).where(
+            User.username == user_login.username
+        )
+        query = await self.async_session.execute(statement=stmt)
+        db_user = query.scalar()
+
+        if not db_user:
+            raise EntityDoesNotExist("Wrong username or wrong email!")
+
+        if not pass_generator.is_password_authenticated(salt=db_user.hash_salt, password=user_login.password,
+                                                        hashed_password=db_user.hashed_password):  # type: ignore
+            raise PasswordDoesNotMatch("Password does not match!")
+
+        return db_user  # type: ignore

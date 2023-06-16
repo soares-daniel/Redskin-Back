@@ -38,9 +38,9 @@ class JWTGenerator:
         )
 
     @staticmethod
-    def retrieve_details_from_token(token: str, secret_key: str) -> list[str]:
+    def retrieve_details_from_token(token: str) -> list[str]:
         try:
-            payload = jose_jwt.decode(token=token, key=secret_key, algorithms=[settings.JWT_ALGORITHM])
+            payload = jose_jwt.decode(token=token, key=settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
             jwt_user = JWTUser(username=payload["username"])
 
         except JoseJWTError as token_decode_error:
