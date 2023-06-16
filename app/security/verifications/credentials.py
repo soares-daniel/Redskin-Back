@@ -1,10 +1,7 @@
-import typing
-
-import fastapi
 import sqlalchemy
-from sqlalchemy.ext.asyncio import AsyncSession as SQLAlchemyAsyncSession
 
-from app.database.database import AsyncDatabase, async_db
+
+from app.database.database import async_db
 from app.models.db.user import User
 
 

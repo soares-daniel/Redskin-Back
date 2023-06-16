@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from loguru import logger
 from sqlalchemy import event
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_connection
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSessionTransaction
+from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.pool.base import _ConnectionRecord
 
 from app.database.database import async_db
@@ -37,9 +37,9 @@ async def initialize_db_tables(connection: AsyncConnection) -> None:
 async def init_db_connection(app: FastAPI) -> None:
     logger.info("Database Connection --- Establishing . . .")
 
-    app.state.db = async_db # type: ignore
+    app.state.db = async_db  # type: ignore
 
-    async with app.state.db.async_engine.begin() as connection: # type: ignore
+    async with app.state.db.async_engine.begin() as connection:  # type: ignore
         await initialize_db_tables(connection=connection)
 
     logger.info("Database Connection --- Successfully Established!")
@@ -48,6 +48,6 @@ async def init_db_connection(app: FastAPI) -> None:
 async def close_db_connection(app: FastAPI) -> None:
     logger.info("Database Connection --- Disposing . . .")
 
-    await app.state.db.async_engine.dispose() # type: ignore
+    await app.state.db.async_engine.dispose()  # type: ignore
 
     logger.info("Database Connection --- Successfully Disposed!")
