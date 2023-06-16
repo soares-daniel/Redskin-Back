@@ -62,16 +62,18 @@ class EventRepository(BaseRepository):
 
         return update_event
 
-    async def delete_event_by_id(self, event_id: int) -> bool:
-        select_stmt = sqlalchemy.select(Event).where(Event.id == event_id)
-        query = await self.async_session.execute(statement=select_stmt)
-        delete_event = query.scalar()
+    async def delete_event_by_id(self, event_id: int) -> Event:
+        """Delete event by id"""
+        stmt = sqlalchemy.select(Event).where(Event.id == event_id)
+        query = await self.async_session.execute(statement=stmt)
+        event_to_delete = query.scalar()
 
-        if not delete_event:
+        if not event_to_delete:
             raise EntityDoesNotExist(f"Event with id {event_id} does not exist!")
 
         delete_stmt = sqlalchemy.delete(Event).where(Event.id == event_id)
+
         await self.async_session.execute(statement=delete_stmt)
         await self.async_session.commit()
 
-        return True
+        return event_to_delete

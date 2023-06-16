@@ -136,4 +136,19 @@ async def delete_event(
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> EventInResponse:
     """Delete event"""
-    raise NotImplementedError
+    deleted_event = await event_repo.delete_event_by_id(event_id)
+
+    if deleted_event is None:
+        raise fastapi.HTTPException(status_code=404, detail="Event not found")
+
+    return EventInResponse(
+        id=deleted_event.id,
+        created_by=deleted_event.created_by,
+        event_type=deleted_event.event_type,
+        title=deleted_event.title,
+        description=deleted_event.description,
+        start_date=deleted_event.start_date,
+        end_date=deleted_event.end_date,
+        created_at=deleted_event.created_at,
+        updated_at=deleted_event.updated_at,
+    )

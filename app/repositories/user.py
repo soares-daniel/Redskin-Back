@@ -101,7 +101,7 @@ class UserRepository(BaseRepository):
 
         return update_user
 
-    async def delete_user_by_id(self, user_id: int) -> bool:
+    async def delete_user_by_id(self, user_id: int) -> User:
         select_stmt = sqlalchemy.select(User).where(User.id == user_id)
         query = await self.async_session.execute(statement=select_stmt)
         delete_user = query.scalar()
@@ -110,11 +110,10 @@ class UserRepository(BaseRepository):
             raise EntityDoesNotExist(f"User with id `{user_id}` does not exist!")
 
         stmt = sqlalchemy.delete(table=User).where(User.id == delete_user.id)
-
         await self.async_session.execute(statement=stmt)
         await self.async_session.commit()
 
-        return True
+        return delete_user
 
     async def is_username_taken(self, username: str) -> bool:
         username_stmt = sqlalchemy.select(User.username).select_from(User).where(User.username == username)

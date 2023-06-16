@@ -148,4 +148,18 @@ async def delete_user(
         user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
 ) -> UserInResponse:
     """Delete user"""
-    raise NotImplementedError
+    try:
+        db_user = await user_repo.delete_user_by_id(user_id=user_id)
+
+    except EntityDoesNotExist:
+        raise await http_404_exc_id_not_found_request(_id=user_id)
+
+    return UserInResponse(
+        id=db_user.id,
+        authorized_user=UserWithToken(
+            token="",
+            username=db_user.username,
+            created_at=db_user.created_at,
+            updated_at=db_user.updated_at,
+        ),
+    )
