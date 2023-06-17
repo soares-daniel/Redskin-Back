@@ -8,6 +8,7 @@ from app.api.dependencies.oauth import get_current_user
 from app.utilities.exceptions.database import EntityDoesNotExist
 from app.utilities.exceptions.http.exc_404 import http_404_exc_id_not_found_request
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
+
 router = fastapi.APIRouter(prefix="/events", tags=["events"])
 
 

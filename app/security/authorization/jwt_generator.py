@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
+import datetime
 
-from pydantic import ValidationError
+import pydantic
 from jose import jwt as jose_jwt, JWTError as JoseJWTError
 
 from app.config.manager import settings
@@ -17,13 +17,13 @@ class JWTGenerator:
     def _generate_jwt_token(
         *,
         jwt_data: dict[str, str],
-        expires_delta: timedelta | None = None,
+        expires_delta: datetime.timedelta | None = None,
     ) -> str:
         to_encode = jwt_data.copy()
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=settings.JWT_MIN)
+            expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=settings.JWT_MIN)
         to_encode.update(JWToken(exp=expire, sub=settings.JWT_SUBJECT).dict())
 
         return jose_jwt.encode(to_encode, key=settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
@@ -34,7 +34,7 @@ class JWTGenerator:
 
         return self._generate_jwt_token(
             jwt_data=JWTUser(username=user.username).dict(),  # type: ignore
-            expires_delta=timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRATION_TIME),
+            expires_delta=datetime.timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRATION_TIME),
         )
 
     @staticmethod
@@ -45,7 +45,7 @@ class JWTGenerator:
 
         except JoseJWTError as token_decode_error:
             raise ValueError("Unable to decode JWT Token") from token_decode_error
-        except ValidationError as validation_error:
+        except pydantic.ValidationError as validation_error:
             raise ValueError("Invalid payload in token") from validation_error
 
         return [jwt_user.username]

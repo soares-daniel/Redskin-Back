@@ -7,6 +7,7 @@ from app.models.db.user import User
 
 class CredentialVerifier:
 
+    @staticmethod
     async def is_username_available(self, username: str | None) -> bool:
         # Assuming User is your SQLAlchemy model and session is your database session
         async with async_db.get_session() as async_session:

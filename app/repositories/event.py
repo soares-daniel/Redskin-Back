@@ -1,4 +1,4 @@
-from typing import Sequence
+import typing
 
 import sqlalchemy
 from sqlalchemy.sql import functions as sqlalchemy_functions
@@ -28,7 +28,7 @@ class EventRepository(BaseRepository):
 
         return new_event
 
-    async def get_events(self) -> Sequence[Event]:
+    async def get_events(self) -> typing.Sequence[Event]:
         stmt = sqlalchemy.select(Event)
         query = await self.async_session.execute(statement=stmt)
         return query.scalars().all()

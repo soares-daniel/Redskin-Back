@@ -1,6 +1,7 @@
-from fastapi import Depends
+import jose
+import fastapi
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError
+
 from app.security.authorization.jwt_generator import jwt_generator
 from app.models.db.user import User
 from app.repositories.user import UserRepository
@@ -11,12 +12,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="authorization/signin")
 
 
 async def get_current_user(
-        token: str = Depends(oauth2_scheme),
-        user_repo: UserRepository = Depends(UserRepository)
+        token: str = fastapi.Depends(oauth2_scheme),
+        user_repo: UserRepository = fastapi.Depends(UserRepository)
 ) -> User:
     try:
         username = jwt_generator.retrieve_details_from_token(token)[0]  # Retrieve username from token
-    except JWTError:
+    except jose.JWTError:
         raise await http_exc_401_unauthorized_request()
 
     db_user = await user_repo.get_user_by_username(username)

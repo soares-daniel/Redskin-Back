@@ -1,12 +1,12 @@
 import datetime
 
-from pydantic import BaseModel
+import pydantic
 
 
-class JWToken(BaseModel):
+class JWToken(pydantic.BaseModel):
     exp: datetime.datetime
     sub: str
 
 
-class JWTUser(BaseModel):
+class JWTUser(pydantic.BaseModel):
     username: str

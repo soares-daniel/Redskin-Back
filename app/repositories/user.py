@@ -1,4 +1,4 @@
-from typing import Sequence
+import typing
 
 import sqlalchemy
 from sqlalchemy.sql import functions as sqlalchemy_functions
@@ -30,7 +30,7 @@ class UserRepository(BaseRepository):
 
         return new_user
 
-    async def get_users(self) -> Sequence[User]:
+    async def get_users(self) -> typing.Sequence[User]:
         stmt = sqlalchemy.select(User)
         query = await self.async_session.execute(statement=stmt)
         return query.scalars().all()

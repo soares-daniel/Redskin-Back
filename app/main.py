@@ -1,15 +1,15 @@
 import uvicorn
-from fastapi import FastAPI
+import fastapi
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.events import shutdown_handler, startup_handler
-from app.api.endpoints import router
+from app.api.endpoints import main_router
 from app.config.manager import settings
 
 
-def init_app() -> FastAPI:
+def init_app() -> fastapi.FastAPI:
 
-    new_app = FastAPI(**settings.set_app_attributes)  # type: ignore
+    new_app = fastapi.FastAPI(**settings.set_app_attributes)  # type: ignore
 
     new_app.add_middleware(
         CORSMiddleware,
@@ -22,7 +22,7 @@ def init_app() -> FastAPI:
     new_app.add_event_handler("startup", startup_handler(app=new_app))
     new_app.add_event_handler("shutdown", shutdown_handler(app=new_app))
 
-    new_app.include_router(router=router, prefix=settings.API_PREFIX)
+    new_app.include_router(router=main_router, prefix=settings.API_PREFIX)
 
     return new_app
 

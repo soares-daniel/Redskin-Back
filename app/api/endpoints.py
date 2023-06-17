@@ -1,9 +1,9 @@
-from fastapi import APIRouter
+import fastapi
 
-from app.api.routes.user import router as user_router
-from app.api.routes.event import router as event_router
+from app.api.routes import user, event, authentication
 
-router = APIRouter()
+routers = [user.router, event.router, authentication.router]
+main_router = fastapi.APIRouter()
 
-router.include_router(router=user_router)
-router.include_router(router=event_router)
+for router in routers:
+    main_router.include_router(router)
