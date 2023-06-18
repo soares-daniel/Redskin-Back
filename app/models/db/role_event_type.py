@@ -6,6 +6,7 @@ from app.database.table import Base
 
 
 class RoleEventType(Base):
+    """Role event type table."""
     __tablename__ = "ROLE_EVENT_TYPE"
 
     role_id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
