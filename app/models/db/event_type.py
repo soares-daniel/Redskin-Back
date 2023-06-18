@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy.orm import Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
+from sqlalchemy.orm import relationship as sqlalchemy_relationship, Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
 
 from app.database.table import Base
 
@@ -20,5 +20,7 @@ class EventType(Base):
         sqlalchemy.String(length=1024),
         nullable=True,
         name="DESCRIPTION")
+
+    roles = sqlalchemy_relationship("Role", secondary="ROLE_EVENT_TYPE", backref="EVENT_TYPE")
 
     __mapper_args__ = {"eager_defaults": True}

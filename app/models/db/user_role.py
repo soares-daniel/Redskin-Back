@@ -1,19 +1,10 @@
-from sqlalchemy.orm import Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
+from sqlalchemy import ForeignKey, Table, Column
 
 from app.database.table import Base
 
-
-class UserRole(Base):
-    """Map roles to users."""
-    __tablename__ = "USER_ROLE"
-
-    user_id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
-        foreign_key="USER.ID",
-        nullable=False,
-        name="USER_ID")
-    role_id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
-        foreign_key="ROLE.ID",
-        nullable=False,
-        name="ROLE_ID")
-
-    __mapper_args__ = {"eager_defaults": True}
+user_roles = Table(
+    "USER_ROLE",
+    Base.metadata,
+    Column("USER_ID", ForeignKey("USER.ID"), primary_key=True),
+    Column("ROLE_ID", ForeignKey("ROLE.ID"), primary_key=True)
+)

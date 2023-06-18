@@ -1,6 +1,7 @@
 import datetime
 
 import sqlalchemy
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
 
 from app.database.table import Base
@@ -15,11 +16,11 @@ class Event(Base):
         autoincrement=True,
         name="ID")
     created_by: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
-        foreign_key="USER.ID",
+        ForeignKey("USER.ID"),
         nullable=False,
         name="CREATED_BY")
     event_type: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
-        foreign_key="EVENT_TYPE.ID",
+        ForeignKey("EVENT_TYPE.ID"),
         nullable=False,
         name="EVENT_TYPE")
     title: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(

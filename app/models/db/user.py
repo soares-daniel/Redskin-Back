@@ -1,7 +1,7 @@
 import datetime
 
 import sqlalchemy
-from sqlalchemy.orm import Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
+from sqlalchemy.orm import relationship as sqlalchemy_relationship, Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
 
 from app.database.table import Base
 
@@ -40,6 +40,8 @@ class User(Base):
         server_onupdate=sqlalchemy.schema.FetchedValue(for_update=True),
         name="UPDATED_AT"
     )
+
+    roles = sqlalchemy_relationship("Role", secondary="USER_ROLES", backref="USER")
 
     __mapper_args__ = {"eager_defaults": True}
 
