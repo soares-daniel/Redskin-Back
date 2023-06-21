@@ -1,6 +1,7 @@
 import fastapi
 
 from app.api.dependencies.repository import get_repository
+from app.api.dependencies.role import is_user_in_role
 from app.models.schemas.user import UserInCreate, UserInResponse, UserInUpdate, UserWithToken
 from app.repositories.user import UserRepository
 from app.security.authorization.jwt_generator import jwt_generator
@@ -70,6 +71,7 @@ async def get_user(
     path="",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_201_CREATED,
+    dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
 )
 async def create_user(
         user_create: UserInCreate,
@@ -100,6 +102,7 @@ async def create_user(
     path="/{user_id}",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
 )
 async def update_user(
         user_id: int,
@@ -142,6 +145,7 @@ async def update_user(
     path="/{user_id}",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
 )
 async def delete_user(
         user_id: int,
