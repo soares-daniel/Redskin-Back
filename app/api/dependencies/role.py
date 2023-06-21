@@ -3,7 +3,7 @@ from app.repositories.user import UserRepository
 from app.api.dependencies.authentication import get_current_user
 from app.api.dependencies.repository import get_repository
 from app.models.db.user import User
-from app.utilities.exceptions.http.exc_403 import http_403_exc_forbidden_request
+from app.utilities.exceptions.http.exc_403 import http_403_exc_missing_role
 
 
 def is_user_in_role(role: str):
@@ -13,6 +13,6 @@ def is_user_in_role(role: str):
     ) -> User:
         db_user = await user_repo.get_user_by_id(current_user.id)
         if role not in db_user.roles:
-            raise http_403_exc_forbidden_request()
+            raise http_403_exc_missing_role()
         return current_user
     return _is_user_in_role

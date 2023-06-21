@@ -22,6 +22,14 @@ def http_403_forbidden_details() -> str:
     return "Refused access to the requested resource!"
 
 
+def http_403_permission_denied_details() -> str:
+    return "Not enough permissions to perform this operation!"
+
+
+def http_403_missing_role() -> str:
+    return "Missing required role to access this resource!"
+
+
 def http_404_id_details(_id: int) -> str:
     return f"Either the account with id `{_id}` doesn't exist, has been deleted, or you are not authorized!"
 
