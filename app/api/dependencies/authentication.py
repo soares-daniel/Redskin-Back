@@ -8,7 +8,7 @@ from app.repositories.user import UserRepository
 from app.utilities.exceptions.http.exc_401 import http_exc_401_unauthorized_request
 from app.utilities.exceptions.http.exc_404 import http_404_exc_username_not_found_request
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="authorization/signin")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="authorization/login")
 
 
 async def get_current_user(

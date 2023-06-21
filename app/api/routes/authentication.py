@@ -10,12 +10,12 @@ router = fastapi.APIRouter(prefix="/authorization", tags=["authorization"])
 
 
 @router.post(
-    path="/signin",
+    path="/login",
     name="auth:signin",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_202_ACCEPTED,
 )
-async def signin(
+async def login(
     user_login: UserInLogin,
     user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
 ) -> UserInResponse:
