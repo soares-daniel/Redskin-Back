@@ -33,6 +33,16 @@ class EventRepository(BaseRepository):
         query = await self.async_session.execute(statement=stmt)
         return query.scalars().all()
 
+    async def get_events_by_ids(self, event_ids: typing.Sequence[int]) -> typing.Sequence[Event]:
+        stmt = sqlalchemy.select(Event).where(Event.id.in_(event_ids))
+        query = await self.async_session.execute(statement=stmt)
+        return query.scalars().all()
+
+    async def get_events_by_event_type_ids(self, event_type_ids: typing.Sequence[int]) -> typing.Sequence[Event]:
+        stmt = sqlalchemy.select(Event).where(Event.event_type.in_(event_type_ids))
+        query = await self.async_session.execute(statement=stmt)
+        return query.scalars().all()
+
     async def get_event_by_id(self, event_id: int) -> Event:
         stmt = sqlalchemy.select(Event).where(Event.id == event_id)
         query = await self.async_session.execute(statement=stmt)
@@ -41,6 +51,22 @@ class EventRepository(BaseRepository):
             raise EntityDoesNotExist(f"Event with id {event_id} does not exist!")
 
         return query.scalar()
+
+    async def get_events_for_user(self, user_id: int) -> typing.Sequence[Event]:
+        role_repo = RoleRepository(self.async_session)  # Initialize RoleRepository with the same session
+        user_roles = await role_repo.get_roles_for_user(user_id)  # Fetch the roles for the user
+
+        accessible_event_type_ids = []
+        for role in user_roles:
+            # Get all event type ids where the role has 'can_see' = True
+            role_event_type_ids = await role_repo.get_event_type_ids_for_role(role.id, can_see=True)
+            accessible_event_type_ids.extend(role_event_type_ids)
+
+        accessible_event_type_ids = list(set(accessible_event_type_ids))  # remove duplicates
+
+        # Get all events where the event type id is in `accessible_event_type_ids`
+        accessible_events = await self.get_events_by_event_type_ids(accessible_event_type_ids)
+        return accessible_events
 
     async def update_event_by_id(self, event_id: int, event_update: EventInUpdate) -> Event:
         new_event_data = event_update.dict()

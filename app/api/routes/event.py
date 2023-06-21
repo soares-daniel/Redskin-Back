@@ -4,7 +4,8 @@ from app.api.dependencies.repository import get_repository
 from app.models.schemas.event import EventInCreate, EventInResponse, EventInUpdate
 from app.repositories.event import EventRepository
 from app.models.db.user import User
-from app.api.dependencies.oauth import get_current_user
+from app.api.dependencies.authentication import get_current_user
+from app.utilities.authorization.permissions import check_event_type_permission
 from app.utilities.exceptions.database import EntityDoesNotExist
 from app.utilities.exceptions.http.exc_404 import http_404_exc_id_not_found_request
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
@@ -54,9 +55,10 @@ async def get_event(
     """Get event by id"""
     try:
         db_event = await event_repo.get_event_by_id(event_id)
-
     except EntityDoesNotExist:
         raise await http_404_exc_id_not_found_request(_id=event_id)
+
+    await check_event_type_permission(current_user=current_user, event_type=db_event.event_type, action='see')
 
     return EventInResponse(
         id=db_event.id,
@@ -82,6 +84,8 @@ async def create_event(
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> EventInResponse:
     """Create new event"""
+    await check_event_type_permission(current_user=current_user, event_type=event_create.event_type, action='add')
+
     db_event = await event_repo.create_event(event_create=event_create)
 
     return EventInResponse(
@@ -117,6 +121,8 @@ async def update_event(
 
     updated_event = await event_repo.update_event_by_id(event_id=event_id, event_update=event_update)
 
+    await check_event_type_permission(current_user=current_user, event_type=updated_event.event_type, action='edit')
+
     if updated_event is None:
         raise await http_500_exc_internal_server_error()
 
@@ -144,7 +150,10 @@ async def delete_event(
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> EventInResponse:
     """Delete event"""
+
     deleted_event = await event_repo.delete_event_by_id(event_id)
+
+    await check_event_type_permission(current_user=current_user, event_type=deleted_event.event_type, action='edit')
 
     if deleted_event is None:
         raise fastapi.HTTPException(status_code=404, detail="Event not found")
