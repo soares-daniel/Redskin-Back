@@ -58,11 +58,6 @@ class BaseSettings(pydantic.BaseSettings):
         "http://localhost:3000",  # React default port
         "http://0.0.0.0:3000",
         "http://127.0.0.1:3000",  # React docker port
-        "http://127.0.0.1:3001",
-        "http://localhost:5173",  # Qwik default port
-        "http://0.0.0.0:5173",
-        "http://127.0.0.1:5173",  # Qwik docker port
-        "http://127.0.0.1:5174",
     ]
     ALLOWED_METHODS: list[str] = ["*"]
     ALLOWED_HEADERS: list[str] = ["*"]
@@ -76,6 +71,11 @@ class BaseSettings(pydantic.BaseSettings):
     HASHING_ALGORITHM_LAYER_2: str = decouple.config("HASHING_ALGORITHM_LAYER_2", cast=str)  # type: ignore
     HASHING_SALT: str = decouple.config("HASHING_SALT", cast=str)  # type: ignore
     JWT_ALGORITHM: str = decouple.config("JWT_ALGORITHM", cast=str)  # type: ignore
+
+    # Discord
+    DISCORD_CLIENT_ID: str = decouple.config("DISCORD_CLIENT_ID", cast=str)  # type: ignore
+    DISCORD_SERVER_PORT: int = decouple.config("DISCORD_SERVER_PORT", cast=int)  # type: ignore
+
 
     class Config(pydantic.BaseConfig):
         case_sensitive: bool = True
