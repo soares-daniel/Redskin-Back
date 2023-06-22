@@ -92,7 +92,7 @@ async def create_event(
 
     db_event = await event_repo.create_event(event_create=event_create)
 
-    await notif_service.send_event_notification(event=db_event, event_type=EventOperation.CREATE)
+    await notif_service.send_event_notification(event=db_event, event_operation=EventOperation.CREATE)
 
     return EventInResponse(
         id=db_event.id,
@@ -133,7 +133,7 @@ async def update_event(
     if updated_event is None:
         raise await http_500_exc_internal_server_error()
 
-    await notif_service.send_event_notification(event=db_event, event_type=EventOperation.UPDATE)
+    await notif_service.send_event_notification(event=db_event, event_operation=EventOperation.UPDATE)
 
     return EventInResponse(
         id=updated_event.id,
@@ -168,7 +168,7 @@ async def delete_event(
     if deleted_event is None:
         raise fastapi.HTTPException(status_code=404, detail="Event not found")
 
-    await notif_service.send_event_notification(event=deleted_event, event_type=EventOperation.DELETE)
+    await notif_service.send_event_notification(event=deleted_event, event_operation=EventOperation.DELETE)
 
     return EventInResponse(
         id=deleted_event.id,
