@@ -75,7 +75,7 @@ class BaseSettings(pydantic.BaseSettings):
     # Discord
     DISCORD_CLIENT_ID: str = decouple.config("DISCORD_CLIENT_ID", cast=str)  # type: ignore
     DISCORD_SERVER_PORT: int = decouple.config("DISCORD_SERVER_PORT", cast=int)  # type: ignore
-
+    DISCORD_URL: str = f"http://{SERVER_HOST}:{DISCORD_SERVER_PORT}"
 
     class Config(pydantic.BaseConfig):
         case_sensitive: bool = True
