@@ -10,6 +10,13 @@ from app.utilities.exceptions.database import EntityDoesNotExist
 
 
 class RoleEventTypeRepository(BaseRepository):
+    async def get_permissions(self) -> typing.Sequence[RoleEventType]:
+        stmt = sqlalchemy.select(RoleEventType)
+        query = await self.async_session.execute(statement=stmt)
+        permissions = query.scalars().all()
+
+        return permissions
+
     async def get_permissions_by_role_id(self, role_id: int) -> typing.Sequence[RoleEventType]:
         stmt = sqlalchemy.select(RoleEventType).where(RoleEventType.role_id == role_id)
         query = await self.async_session.execute(statement=stmt)

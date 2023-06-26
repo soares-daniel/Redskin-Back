@@ -2,6 +2,7 @@ import fastapi
 
 from app.api.dependencies.repository import get_repository
 from app.api.dependencies.role import is_user_in_role
+from app.models.schemas.role import RoleInResponse
 from app.models.schemas.user import UserInCreate, UserInResponse, UserInUpdate, UserWithToken
 from app.repositories.user import UserRepository
 from app.security.authorization.jwt_generator import jwt_generator
@@ -166,3 +167,31 @@ async def delete_user(
             updated_at=db_user.updated_at,
         ),
     )
+
+
+@router.get(
+    path="/{user_id}/roles",
+    response_model=list[RoleInResponse],
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def get_user_roles(
+        user_id: int,
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
+) -> list[RoleInResponse]:
+    """Get user roles"""
+    try:
+        db_user = await user_repo.get_user_by_id(user_id)
+
+    except EntityDoesNotExist:
+        raise await http_404_exc_id_not_found_request(_id=user_id)
+
+    db_roles = await user_repo.get_roles_for_user(user_id=db_user.id)
+    db_role_list = list()
+    for db_role in db_roles:
+        role = RoleInResponse(
+            id=db_role.id,
+            name=db_role.name
+        )
+        db_role_list.append(role)
+
+    return db_role_list

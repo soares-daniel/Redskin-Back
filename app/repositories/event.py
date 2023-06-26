@@ -7,6 +7,7 @@ from app.repositories.base import BaseRepository
 from app.models.db.event import Event
 from app.models.schemas.event import EventInCreate, EventInUpdate
 from app.repositories.role import RoleRepository
+from app.repositories.user import UserRepository
 from app.utilities.exceptions.database import EntityDoesNotExist
 
 
@@ -43,12 +44,13 @@ class EventRepository(BaseRepository):
         return event
 
     async def get_events_for_user(self, user_id: int) -> typing.Sequence[Event]:
-        role_repo = RoleRepository(self.async_session)  # Initialize RoleRepository with the same session
-        user_roles = await role_repo.get_roles_for_user(user_id)  # Fetch the roles for the user
+        user_repo = UserRepository(self.async_session)  # Initialize RoleRepository with the same session
+        user_roles = await user_repo.get_roles_for_user(user_id)  # Fetch the roles for the user
 
         accessible_event_type_ids = []
         for role in user_roles:
             # Get all event type ids where the role has 'can_see' = True
+            role_repo = RoleRepository(self.async_session)  # Initialize RoleRepository with the same session
             role_event_type_ids = await role_repo.get_event_type_ids_for_role(role.id)
             accessible_event_type_ids.extend(role_event_type_ids)
 

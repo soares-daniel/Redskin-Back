@@ -96,16 +96,6 @@ class RoleRepository(BaseRepository):
 
         return role_to_delete
 
-    async def get_roles_for_user(self, user_id: int) -> typing.Sequence[Role]:
-        user_stmt = sqlalchemy.select(User).where(User.id == user_id)
-        user_query = await self.async_session.execute(user_stmt)
-        user = user_query.scalar()
-
-        if not user:
-            raise EntityDoesNotExist(f"User with id {user_id} does not exist!")
-
-        return user.roles
-
     async def get_event_type_ids_for_role(self, role_id: int) -> typing.Sequence[int]:
         role_stmt = sqlalchemy.select(Role).where(Role.id == role_id)
         role_query = await self.async_session.execute(role_stmt)

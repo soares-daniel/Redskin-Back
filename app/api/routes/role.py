@@ -2,9 +2,11 @@ import fastapi
 
 from app.api.dependencies.repository import get_repository
 from app.models.schemas.role import RoleInCreate, RoleInResponse, RoleInUpdate
+from app.models.schemas.role_event_type import RoleEventTypeInResponse
 from app.repositories.role import RoleRepository
 from app.models.db.user import User
 from app.api.dependencies.authentication import get_current_user
+from app.repositories.role_event_type import RoleEventTypeRepository
 from app.utilities.exceptions.database import EntityDoesNotExist
 from app.utilities.exceptions.http.exc_404 import http_404_exc_id_not_found_request
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
@@ -104,3 +106,32 @@ async def delete_role(
         raise fastapi.HTTPException(status_code=404, detail="Role not found")
 
     return RoleInResponse.from_orm(deleted_role)
+
+
+@router.get(
+    path="/event_types",
+    response_model=list[RoleEventTypeInResponse],
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def get_permissions(
+        role_event_type_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository))
+) -> list[RoleEventTypeInResponse]:
+    """Get all event types"""
+    db_event_types = await role_event_type_repo.get_permissions()
+
+    return [RoleEventTypeInResponse.from_orm(event_type) for event_type in db_event_types]
+
+
+@router.get(
+    path="/{role_id}/event_types",
+    response_model=list[RoleEventTypeInResponse],
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def get_permissions_by_role_id(
+        role_id: int,
+        role_event_type_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository))
+) -> list[RoleEventTypeInResponse]:
+    """Get all event types by role id"""
+    db_event_types = await role_event_type_repo.get_permissions_by_role_id(role_id)
+
+    return [RoleEventTypeInResponse.from_orm(event_type) for event_type in db_event_types]

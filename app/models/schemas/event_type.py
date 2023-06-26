@@ -12,5 +12,6 @@ class EventTypeInUpdate(BaseSchemaModel):
 
 
 class EventTypeInResponse(BaseSchemaModel):
+    id: int
     name: str
     description: str

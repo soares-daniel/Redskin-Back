@@ -4,9 +4,11 @@ from app.api.dependencies.repository import get_repository
 from app.api.dependencies.service import get_service
 from app.models.schemas.event import EventInCreate, EventInResponse, EventInUpdate
 from app.models.schemas.event_operation import EventOperation
+from app.models.schemas.event_type import EventTypeInResponse
 from app.repositories.event import EventRepository
 from app.models.db.user import User
 from app.api.dependencies.authentication import get_current_user
+from app.repositories.event_type import EventTypeRepository
 from app.services.notification import NotificationService
 from app.utilities.authorization.permissions import check_event_type_permission
 from app.utilities.exceptions.database import EntityDoesNotExist
@@ -181,3 +183,25 @@ async def delete_event(
         created_at=deleted_event.created_at,
         updated_at=deleted_event.updated_at,
     )
+
+
+@router.get(
+    path="/event_types",
+    response_model=list[EventTypeInResponse],
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def get_event_types(
+        current_user: User = fastapi.Depends(get_current_user),
+        event_type_repo: EventTypeRepository = fastapi.Depends(get_repository(repo_type=EventTypeRepository)),
+) -> list[EventTypeInResponse]:
+    """Get event types"""
+    event_types = await event_type_repo.get_event_types()
+    event_type_list = []
+    for event_type in event_types:
+        event_type_list.append(EventTypeInResponse(
+            id=event_type.id,
+            name=event_type.name,
+            description=event_type.description,
+        ))
+
+    return event_type_list

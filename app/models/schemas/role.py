@@ -1,5 +1,3 @@
-import datetime
-
 from app.models.schemas.base import BaseSchemaModel
 
 
@@ -12,6 +10,5 @@ class RoleInUpdate(BaseSchemaModel):
 
 
 class RoleInResponse(BaseSchemaModel):
+    id: int
     name: str
-    created_at: datetime.datetime
-    updated_at: datetime.datetime | None

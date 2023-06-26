@@ -17,7 +17,7 @@ class RoleEventTypeInUpdate(BaseSchemaModel):
     can_add: bool | None
 
 
-class RoleEventTypeInReponse(BaseSchemaModel):
+class RoleEventTypeInResponse(BaseSchemaModel):
     role_id: int
     event_type_id: int
     can_edit: bool
