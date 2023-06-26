@@ -4,6 +4,7 @@ from sqlalchemy.orm import (relationship as sqlalchemy_relationship,
                             mapped_column as sqlalchemy_mapped_column)
 
 from app.database.table import Base
+from app.models.db.user_role import user_roles
 
 
 class Role(Base):
@@ -19,7 +20,7 @@ class Role(Base):
         nullable=False,
         name="NAME")
 
-    users = sqlalchemy_relationship("User", secondary="USER_ROLE", backref="roles")
-    event_types = sqlalchemy_relationship("EventType", secondary="ROLE_EVENT_TYPE", backref="roles")
+    users = sqlalchemy_relationship("User", secondary=user_roles, back_populates="roles")
+    event_types = sqlalchemy_relationship("EventType", secondary="ROLE_EVENT_TYPE", back_populates="roles")
 
     __mapper_args__ = {"eager_defaults": True}

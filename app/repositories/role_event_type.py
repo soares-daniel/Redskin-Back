@@ -13,30 +13,37 @@ class RoleEventTypeRepository(BaseRepository):
     async def get_permissions_by_role_id(self, role_id: int) -> typing.Sequence[RoleEventType]:
         stmt = sqlalchemy.select(RoleEventType).where(RoleEventType.role_id == role_id)
         query = await self.async_session.execute(statement=stmt)
+        permissions = query.scalars().all()
 
-        return query.scalars().all()
+        return permissions
 
     async def get_permissions_by_event_type_id(self, event_type_id: int) -> typing.Sequence[RoleEventType]:
         stmt = sqlalchemy.select(RoleEventType).where(RoleEventType.event_type_id == event_type_id)
         query = await self.async_session.execute(statement=stmt)
+        permissions = query.scalars().all()
 
-        return query.scalars().all()
+        return permissions
 
     async def get_permissions_by_role_id_and_event_type_id(self, role_id: int, event_type_id: int) -> RoleEventType:
         stmt = sqlalchemy.select(RoleEventType)\
             .where(RoleEventType.role_id == role_id)\
             .where(RoleEventType.event_type_id == event_type_id)
         query = await self.async_session.execute(statement=stmt)
+        permission = query.scalar()
 
-        return query.scalar_one_or_none()
+        return permission
 
     async def create_permissions(self, permission_create: RoleEventTypeInCreate) -> RoleEventType:
         new_permissions = RoleEventType(**permission_create.dict())
         new_permissions.created_at = sqlalchemy_functions.now()
 
         self.async_session.add(instance=new_permissions)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance=new_permissions)
+        try:
+            await self.async_session.commit()
+            await self.async_session.refresh(instance=new_permissions)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return new_permissions
 
@@ -63,8 +70,12 @@ class RoleEventTypeRepository(BaseRepository):
             .values(updated_at=sqlalchemy_functions.now(), **new_permissions_data)
 
         await self.async_session.execute(statement=update_stmt)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance=update_permissions)
+        try:
+            await self.async_session.commit()
+            await self.async_session.refresh(instance=update_permissions)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return update_permissions
 
@@ -87,7 +98,11 @@ class RoleEventTypeRepository(BaseRepository):
             .where(RoleEventType.event_type_id == event_type_id)
 
         await self.async_session.execute(statement=stmt)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance=permissions_to_delete)
+        try:
+            await self.async_session.commit()
+            self.async_session.expunge(permissions_to_delete)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return permissions_to_delete

@@ -14,33 +14,41 @@ class RoleRepository(BaseRepository):
     async def get_roles(self) -> typing.Sequence[Role]:
         stmt = sqlalchemy.select(Role)
         query = await self.async_session.execute(statement=stmt)
-        return query.scalars().all()
+        roles = query.scalars().all()
+
+        return roles
 
     async def get_role_by_id(self, role_id: int) -> Role:
         stmt = sqlalchemy.select(Role).where(Role.id == role_id)
         query = await self.async_session.execute(statement=stmt)
+        role = query.scalar()
 
-        if not query:
+        if not role:
             raise EntityDoesNotExist(f"Role with id {role_id} does not exist!")
 
-        return query.scalar()
+        return role
 
     async def get_role_by_name(self, role_name: str) -> Role:
         stmt = sqlalchemy.select(Role).where(Role.name == role_name)
         query = await self.async_session.execute(statement=stmt)
+        role = query.scalar()
 
-        if not query:
+        if not role:
             raise EntityDoesNotExist(f"Role with name {role_name} does not exist!")
 
-        return query.scalar()
+        return role
 
     async def create_role(self, role_create: RoleInCreate) -> Role:
         new_role = Role(**role_create.dict())
         new_role.created_at = sqlalchemy_functions.now()
 
         self.async_session.add(instance=new_role)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance=new_role)
+        try:
+            await self.async_session.commit()
+            await self.async_session.refresh(instance=new_role)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return new_role
 
@@ -59,8 +67,12 @@ class RoleRepository(BaseRepository):
             .values(updated_at=sqlalchemy_functions.now(), **new_role_data)
 
         await self.async_session.execute(statement=update_stmt)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance=update_role)
+        try:
+            await self.async_session.commit()
+            await self.async_session.refresh(instance=update_role)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return update_role
 
@@ -75,7 +87,12 @@ class RoleRepository(BaseRepository):
         stmt = sqlalchemy.delete(Role).where(Role.id == role_id)
 
         await self.async_session.execute(statement=stmt)
-        await self.async_session.commit()
+        try:
+            await self.async_session.commit()
+            self.async_session.expunge(role_to_delete)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return role_to_delete
 

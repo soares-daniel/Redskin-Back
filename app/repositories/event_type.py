@@ -13,25 +13,41 @@ class EventTypeRepository(BaseRepository):
     async def get_event_types(self) -> typing.Sequence[EventType]:
         stmt = sqlalchemy.select(EventType)
         query = await self.async_session.execute(statement=stmt)
-        return query.scalars().all()
+        event_types = query.scalars().all()
+
+        return event_types
 
     async def get_event_type_by_id(self, event_type_id: int) -> EventType:
         stmt = sqlalchemy.select(EventType).where(EventType.id == event_type_id)
         query = await self.async_session.execute(statement=stmt)
-        return query.scalar_one_or_none()
+        event_type = query.scalar()
+
+        if not event_type:
+            raise EntityDoesNotExist(f"Event type with id {event_type_id} does not exist!")
+
+        return event_type
 
     async def get_event_type_by_name(self, event_type_name: str) -> EventType:
         stmt = sqlalchemy.select(EventType).where(EventType.name == event_type_name)
         query = await self.async_session.execute(statement=stmt)
-        return query.scalar_one_or_none()
+        event_type = query.scalar()
+
+        if not event_type:
+            raise EntityDoesNotExist(f"Event type with name {event_type_name} does not exist!")
+
+        return event_type
 
     async def create_event_type(self, event_type_create: EventTypeInCreate) -> EventType:
         new_event_type = EventType(**event_type_create.dict())
         new_event_type.created_at = sqlalchemy_functions.now()
 
         self.async_session.add(instance=new_event_type)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance=new_event_type)
+        try:
+            await self.async_session.commit()
+            await self.async_session.refresh(instance=new_event_type)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return new_event_type
 
@@ -50,8 +66,12 @@ class EventTypeRepository(BaseRepository):
             .values(updated_at=sqlalchemy_functions.now(), **new_event_type_data)
 
         await self.async_session.execute(statement=update_stmt)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance=update_event_type)
+        try:
+            await self.async_session.commit()
+            await self.async_session.refresh(instance=update_event_type)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return update_event_type
 
@@ -66,7 +86,11 @@ class EventTypeRepository(BaseRepository):
         stmt = sqlalchemy.delete(EventType).where(EventType.id == event_type_id)
 
         await self.async_session.execute(statement=stmt)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance=event_type_to_delete)
+        try:
+            await self.async_session.commit()
+            self.async_session.expunge(event_type_to_delete)
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
 
         return event_type_to_delete

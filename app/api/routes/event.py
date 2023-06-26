@@ -26,7 +26,7 @@ async def get_events(
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> list[EventInResponse]:
     """Get all events"""
-    db_events = await event_repo.get_events()
+    db_events = await event_repo.get_events_for_user(user_id=current_user.id)
     db_event_list = list()
     for db_event in db_events:
         event = EventInResponse(

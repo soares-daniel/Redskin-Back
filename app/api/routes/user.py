@@ -112,7 +112,6 @@ async def update_user(
     """Update user"""
     try:
         db_user = await user_repo.get_user_by_id(user_id)
-
     except EntityDoesNotExist:
         raise await http_404_exc_id_not_found_request(_id=user_id)
 

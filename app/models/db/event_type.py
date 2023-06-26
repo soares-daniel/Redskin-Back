@@ -8,7 +8,7 @@ from app.database.table import Base
 
 class EventType(Base):
     """Event type table."""
-    ___tablename__ = "EVENT_TYPE"
+    __tablename__ = "EVENT_TYPE"
 
     id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
         primary_key=True,
@@ -23,6 +23,6 @@ class EventType(Base):
         nullable=True,
         name="DESCRIPTION")
 
-    roles = sqlalchemy_relationship("Role", secondary="ROLE_EVENT_TYPE", backref="EVENT_TYPE")
+    roles = sqlalchemy_relationship("Role", secondary="ROLE_EVENT_TYPE", back_populates="event_types")
 
     __mapper_args__ = {"eager_defaults": True}

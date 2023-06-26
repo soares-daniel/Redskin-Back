@@ -4,6 +4,7 @@ import sqlalchemy
 from sqlalchemy.orm import relationship as sqlalchemy_relationship, Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
 
 from app.database.table import Base
+from app.models.db.user_role import user_roles
 
 
 class User(Base):
@@ -18,11 +19,11 @@ class User(Base):
         sqlalchemy.String(length=50),
         nullable=True,
         name="USERNAME")
-    hashed_password: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
+    _hashed_password: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
         sqlalchemy.String(length=1024),
         nullable=True,
         name="HASHED_PASSWORD")
-    hash_salt: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
+    _hash_salt: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
         sqlalchemy.String(length=1024),
         nullable=True,
         name="HASH_SALT")
@@ -41,7 +42,7 @@ class User(Base):
         name="UPDATED_AT"
     )
 
-    roles = sqlalchemy_relationship("Role", secondary="USER_ROLE", backref="users")
+    roles = sqlalchemy_relationship("Role", secondary=user_roles, back_populates="users")
 
     __mapper_args__ = {"eager_defaults": True}
 
@@ -50,11 +51,11 @@ class User(Base):
         return self._hashed_password
 
     def set_hashed_password(self, hashed_password: str) -> None:
-        self._hashed_password = hashed_password
+        self._hashed_password = hashed_password  # type: ignore
 
     @property
     def hash_salt(self) -> str:
         return self._hash_salt
 
     def set_hash_salt(self, hash_salt: str) -> None:
-        self._hash_salt = hash_salt
+        self._hash_salt = hash_salt  # type: ignore
