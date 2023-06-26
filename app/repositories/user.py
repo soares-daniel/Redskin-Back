@@ -3,6 +3,7 @@ import typing
 import sqlalchemy
 from sqlalchemy.sql import functions as sqlalchemy_functions
 
+from app.models.db.role import Role
 from app.repositories.base import BaseRepository
 from app.models.db.user import User
 from app.models.schemas.user import UserInCreate, UserInLogin, UserInUpdate
@@ -140,3 +141,24 @@ class UserRepository(BaseRepository):
             raise PasswordDoesNotMatch("Password does not match!")
 
         return db_user  # type: ignore
+
+    async def assign_role_to_user(self, user_id: int, role_id: int) -> User:
+        # Fetch the User and Role objects first to ensure they exist
+        user = await self.get_user_by_id(user_id)
+
+        role_stmt = sqlalchemy.select(Role).where(Role.id == role_id)
+        role_query = await self.async_session.execute(role_stmt)
+        role = role_query.scalar()
+
+        if user is None or role is None:
+            raise EntityDoesNotExist(f"User with id {user_id} or Role with id {role_id} does not exist!")
+
+        # Check if the user already has the role
+        if role in user.roles:
+            raise EntityAlreadyExists(f"Role with id {role_id} is already assigned to user with id {user_id}!")
+
+        # Assign the role to the user
+        user.roles.append(role)
+        await self.async_session.commit()
+
+        return user

@@ -25,6 +25,15 @@ class RoleRepository(BaseRepository):
 
         return query.scalar()
 
+    async def get_role_by_name(self, role_name: str) -> Role:
+        stmt = sqlalchemy.select(Role).where(Role.name == role_name)
+        query = await self.async_session.execute(statement=stmt)
+
+        if not query:
+            raise EntityDoesNotExist(f"Role with name {role_name} does not exist!")
+
+        return query.scalar()
+
     async def create_role(self, role_create: RoleInCreate) -> Role:
         new_role = Role(**role_create.dict())
         new_role.created_at = sqlalchemy_functions.now()

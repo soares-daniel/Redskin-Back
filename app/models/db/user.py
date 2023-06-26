@@ -41,7 +41,7 @@ class User(Base):
         name="UPDATED_AT"
     )
 
-    roles = sqlalchemy_relationship("Role", secondary="USER_ROLES", backref="USER")
+    roles = sqlalchemy_relationship("Role", secondary="USER_ROLE", backref="users")
 
     __mapper_args__ = {"eager_defaults": True}
 
