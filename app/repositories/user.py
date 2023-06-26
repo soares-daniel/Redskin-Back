@@ -189,9 +189,9 @@ class UserRepository(BaseRepository):
         return user
 
     async def get_roles_for_user(self, user_id: int) -> typing.Sequence[Role]:
-        user_stmt = sqlalchemy.select(User).where(User.id == user_id)
-        user_query = await self.async_session.execute(user_stmt)
-        user = user_query.scalar()
+        stmt = sqlalchemy.select(User).options(selectinload(User.roles)).where(User.id == user_id)
+        query = await self.async_session.execute(stmt)
+        user = query.scalar()
 
         if not user:
             raise EntityDoesNotExist(f"User with id {user_id} does not exist!")
