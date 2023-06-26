@@ -78,6 +78,10 @@ class BaseSettings(pydantic.BaseSettings):
     DISCORD_NOTIFICATION_ENDPOINT: str = decouple.config("DISCORD_NOTIFICATION_ENDPOINT", cast=str)  # type: ignore
     DISCORD_URL: str = f"http://{SERVER_HOST}{DISCORD_NOTIFICATION_ENDPOINT}:{DISCORD_SERVER_PORT}"
 
+    # Superuser
+    SUPER_USER: str = decouple.config("SUPER_USER", cast=str)  # type: ignore
+    SUPER_PASS: str = decouple.config("SUPER_PASS", cast=str)  # type: ignore
+
     class Config(pydantic.BaseConfig):
         case_sensitive: bool = True
         env_file: str = f"{str(ROOT_DIR)}/.env"
