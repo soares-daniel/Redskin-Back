@@ -1,8 +1,8 @@
 import fastapi
 
-from app.api.routes import user, event, authentication, role
+from app.api.routes import user, event, authentication, role, admin
 
-routers = [user.router, event.router, authentication.router, role.router]
+routers = [user.router, event.router, authentication.router, role.router, admin.router]
 main_router = fastapi.APIRouter()
 
 for router in routers:

@@ -1,7 +1,9 @@
 import fastapi
 
+from app.api.dependencies.role import is_user_in_role
 from app.config.manager import settings
 from app.api.dependencies.repository import get_repository
+from app.models.db.user import User
 from app.models.schemas.role import RoleInCreate
 from app.models.schemas.user import UserInCreate
 from app.models.schemas.event_type import EventTypeInCreate
@@ -10,7 +12,7 @@ from app.repositories.user import UserRepository
 from app.repositories.role import RoleRepository
 from app.repositories.event_type import EventTypeRepository
 from app.repositories.role_event_type import RoleEventTypeRepository
-from app.utilities.exceptions.database import EntityDoesNotExist
+from app.utilities.exceptions.database import EntityDoesNotExist, EntityAlreadyExists
 
 router = fastapi.APIRouter(prefix="/admin", tags=["admin"])
 
@@ -19,6 +21,7 @@ router = fastapi.APIRouter(prefix="/admin", tags=["admin"])
     path="/setup",
     response_model=str,
     status_code=fastapi.status.HTTP_201_CREATED,
+    dependencies=[fastapi.Depends(is_user_in_role(role="NEVERRR"))],
 )
 async def setup(
         user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
@@ -32,45 +35,47 @@ async def setup(
     username = settings.SUPER_USER
     password = settings.SUPER_PASS
 
-    try:
-        superuser_obj = await user_repo.get_user_by_username(username)
-    except EntityDoesNotExist:
-        superuser = UserInCreate(username=username, password=password)
-        superuser_obj = await user_repo.create_user(superuser)
-
-    event_type_names = ["scout_event", "comitee_event", "chalet"]
+    event_type_names = {"scout_event": "Pfadfindertermine", "comitee_event": "Vorstandtermine", "chalet": "Chaletvermietung"}
     event_types = []
-
-    for name in event_type_names:
-        try:
-            event_type_obj = await event_type_repo.get_event_type_by_name(name)
-        except EntityDoesNotExist:
-            event_type = EventTypeInCreate(name=name)
-            event_type_obj = await event_type_repo.create_event_type(event_type)
-        event_types.append(event_type_obj)
-
     role_names = ["admin", "super"]
     roles = []
 
-    for name in role_names:
+    try:
+        user = await user_repo.get_user_by_username(username=username)
+    except EntityDoesNotExist:
+        user: User = await user_repo.create_user(user_create=UserInCreate(username=username, password=password))
+
+    for role_name in role_names:
         try:
-            role_obj = await role_repo.get_role_by_name(name)
+            role = await role_repo.get_role_by_name(role_name=role_name)
         except EntityDoesNotExist:
-            role = RoleInCreate(name=name)
-            role_obj = await role_repo.create_role(role)
-        roles.append(role_obj)
+            role = await role_repo.create_role(role_create=RoleInCreate(name=role_name))
+        roles.append(role)
+
+    for event_type in event_type_names:
+        for event_type_name, description in event_type_names.items():
+            try:
+                event_type = await event_type_repo.get_event_type_by_name(event_type_name=event_type_name)
+            except EntityDoesNotExist:
+                event_type = await event_type_repo.create_event_type(
+                    event_type_create=EventTypeInCreate(name=event_type_name, description=description)
+                )
+            event_types.append(event_type)
 
     for role in roles:
-        if role.name == "super":
-            for event_type in event_types:
-                role_event_type_data = RoleEventTypeInCreate(
-                    role_id=role.id,
+        try:
+            await user_repo.assign_role_to_user(user_id=user.id, role_id=role.id)
+        except EntityAlreadyExists:
+            pass
+        for event_type in event_types:
+            await role_event_type_repo.create_permissions(
+                permission_create=RoleEventTypeInCreate(
+                    role_id=2,
                     event_type_id=event_type.id,
-                    can_add=True,
                     can_edit=True,
-                    can_see=True
-                )
-                await role_event_type_repo.create_permissions(role_event_type_data)
-            await user_repo.assign_role_to_user(user_id=superuser_obj.id, role_id=role.id)
+                    can_see=True,
+                    can_add=True
+                ))
 
-    return "Setup completed successfully"
+    return "Setup complete!"
+
