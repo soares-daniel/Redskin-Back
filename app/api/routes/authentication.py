@@ -31,8 +31,7 @@ async def login(
         id=db_user.id,
         authorized_user=UserWithToken(
             token=access_token,
-            username=db_user.username,
-            email=db_user.email,  # type: ignore
+            username=db_user.username, # type: ignore
             is_active=db_user.is_active,
             created_at=db_user.created_at,
             updated_at=db_user.updated_at,

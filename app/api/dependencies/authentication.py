@@ -5,10 +5,11 @@ from fastapi.security import OAuth2PasswordBearer
 from app.security.authorization.jwt_generator import jwt_generator
 from app.models.db.user import User
 from app.repositories.user import UserRepository
+from app.config.manager import settings
 from app.utilities.exceptions.http.exc_401 import http_exc_401_unauthorized_request
 from app.utilities.exceptions.http.exc_404 import http_404_exc_username_not_found_request
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="authorization/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_PREFIX}/authorization/login")
 
 
 async def get_current_user(
