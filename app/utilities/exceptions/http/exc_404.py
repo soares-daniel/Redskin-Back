@@ -6,10 +6,24 @@ from app.utilities.messages.exc_details import (
 )
 
 
-async def http_404_exc_id_not_found_request(_id: int) -> Exception:
+async def http_404_exc_event_id_not_found_request(_id: int) -> Exception:
     return fastapi.HTTPException(
         status_code=fastapi.status.HTTP_404_NOT_FOUND,
-        detail=http_404_id_details(_id=_id),
+        detail=http_404_id_details(_object="event", _id=_id),
+    )
+
+
+async def http_404_exc_role_id_not_found_request(_id: int) -> Exception:
+    return fastapi.HTTPException(
+        status_code=fastapi.status.HTTP_404_NOT_FOUND,
+        detail=http_404_id_details(_object="role", _id=_id),
+    )
+
+
+async def http_404_exc_user_id_not_found_request(_id: int) -> Exception:
+    return fastapi.HTTPException(
+        status_code=fastapi.status.HTTP_404_NOT_FOUND,
+        detail=http_404_id_details(_object="user", _id=_id),
     )
 
 
