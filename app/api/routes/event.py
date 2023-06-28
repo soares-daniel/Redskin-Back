@@ -12,7 +12,7 @@ from app.repositories.event_type import EventTypeRepository
 from app.services.notification import NotificationService
 from app.utilities.authorization.permissions import check_event_type_permission
 from app.utilities.exceptions.database import EntityDoesNotExist
-from app.utilities.exceptions.http.exc_404 import http_404_exc_id_not_found_request
+from app.utilities.exceptions.http.exc_404 import http_404_exc_event_id_not_found_request
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
 
 router = fastapi.APIRouter(prefix="/events", tags=["events"])
@@ -24,6 +24,38 @@ router = fastapi.APIRouter(prefix="/events", tags=["events"])
     status_code=fastapi.status.HTTP_200_OK,
 )
 async def get_events(
+        event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
+) -> list[EventInResponse]:
+    """Get all events"""
+    db_events = await event_repo.get_events()
+
+    return [EventInResponse.from_orm(event) for event in db_events]
+
+
+@router.get(
+    path="/event/{event_id}",
+    response_model=EventInResponse,
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def get_event(
+        event_id: int,
+        event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
+) -> EventInResponse:
+    """Get event by id"""
+    try:
+        db_event = await event_repo.get_event_by_id(event_id)
+    except EntityDoesNotExist:
+        raise await http_404_exc_event_id_not_found_request(_id=event_id)
+
+    return EventInResponse.from_orm(db_event)
+
+
+@router.get(
+    path="/user",
+    response_model=list[EventInResponse],
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def get_events_for_user(
         current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
 ) -> list[EventInResponse]:
@@ -48,11 +80,11 @@ async def get_events(
 
 
 @router.get(
-    path="/{event_id}",
+    path="/user/{event_id}",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_200_OK,
 )
-async def get_event(
+async def get_event_for_user(
         event_id: int,
         current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
@@ -61,7 +93,7 @@ async def get_event(
     try:
         db_event = await event_repo.get_event_by_id(event_id)
     except EntityDoesNotExist:
-        raise await http_404_exc_id_not_found_request(_id=event_id)
+        raise await http_404_exc_event_id_not_found_request(_id=event_id)
 
     await check_event_type_permission(current_user=current_user, event_type=db_event.event_type, action='see')
 
@@ -79,7 +111,7 @@ async def get_event(
 
 
 @router.post(
-    path="",
+    path="/create",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_201_CREATED,
 )
@@ -110,7 +142,7 @@ async def create_event(
 
 
 @router.put(
-    path="/{event_id}",
+    path="/update/{event_id}",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_200_OK,
 )
@@ -126,7 +158,7 @@ async def update_event(
         db_event = await event_repo.get_event_by_id(event_id)
 
     except EntityDoesNotExist:
-        raise await http_404_exc_id_not_found_request(_id=event_id)
+        raise await http_404_exc_event_id_not_found_request(_id=event_id)
 
     updated_event = await event_repo.update_event_by_id(event_id=event_id, event_update=event_update)
 
@@ -151,7 +183,7 @@ async def update_event(
 
 
 @router.delete(
-    path="/{event_id}",
+    path="/delete/{event_id}",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_200_OK,
 )
@@ -191,7 +223,6 @@ async def delete_event(
     status_code=fastapi.status.HTTP_200_OK,
 )
 async def get_event_types(
-        current_user: User = fastapi.Depends(get_current_user),
         event_type_repo: EventTypeRepository = fastapi.Depends(get_repository(repo_type=EventTypeRepository)),
 ) -> list[EventTypeInResponse]:
     """Get event types"""

@@ -1,12 +1,12 @@
 import typing
 
 import sqlalchemy
-from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import functions as sqlalchemy_functions
 
-from app.models.db.role import Role
 from app.repositories.base import BaseRepository
+from app.models.db.role import Role
 from app.models.db.user import User
+from app.models.db.user_role import user_roles
 from app.models.schemas.user import UserInCreate, UserInLogin, UserInUpdate
 from app.security.hashing.password import pass_generator
 from app.security.verifications.credentials import credential_verifier
@@ -160,40 +160,37 @@ class UserRepository(BaseRepository):
 
         return db_user  # type: ignore
 
-    async def assign_role_to_user(self, user_id: int, role_id: int) -> User:
-        # Fetch the User and Role objects first to ensure they exist
-        stmt = sqlalchemy.select(User).options(selectinload(User.roles)).where(User.id == user_id)
-        query = await self.async_session.execute(stmt)
-        user = query.scalar()
+    async def assign_role_to_user(self, user_id: int, role_id: int) -> None:
+        # Ensure both user and role exist
+        user_stmt = sqlalchemy.select(User).where(User.id == user_id)
+        user_query = await self.async_session.execute(user_stmt)
+        user = user_query.scalar_one_or_none()
 
         role_stmt = sqlalchemy.select(Role).where(Role.id == role_id)
         role_query = await self.async_session.execute(role_stmt)
-        role = role_query.scalar()
+        role = role_query.scalar_one_or_none()
 
         if user is None or role is None:
             raise EntityDoesNotExist(f"User with id {user_id} or Role with id {role_id} does not exist!")
 
-        # Check if the user already has the role
-        if role in user.roles:
-            raise EntityAlreadyExists(f"Role with id {role_id} is already assigned to user with id {user_id}!")
-
-        # Assign the role to the user
-        user.roles.append(role)
-
+        # Assign the role to the user by inserting a new row into user_roles
+        stmt = user_roles.insert().values(USER_ID=user_id, ROLE_ID=role_id)
         try:
+            await self.async_session.execute(stmt)
             await self.async_session.commit()
         except Exception as e:
             await self.async_session.rollback()
             raise e
 
-        return user
-
     async def get_roles_for_user(self, user_id: int) -> typing.Sequence[Role]:
-        stmt = sqlalchemy.select(User).options(selectinload(User.roles)).where(User.id == user_id)
-        query = await self.async_session.execute(stmt)
-        user = query.scalar()
+        # Get the role_ids for the user from the user_roles table
+        stmt = sqlalchemy.select(user_roles.c.ROLE_ID).where(user_roles.c.USER_ID == user_id)
+        result = await self.async_session.execute(stmt)
+        role_ids = [row[0] for row in result]
 
-        if not user:
-            raise EntityDoesNotExist(f"User with id {user_id} does not exist!")
+        # Fetch the actual Role objects using the role_ids
+        roles_stmt = sqlalchemy.select(Role).where(Role.id.in_(role_ids))
+        roles_result = await self.async_session.execute(roles_stmt)
+        roles = roles_result.scalars().all()
 
-        return user.roles
+        return roles

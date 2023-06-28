@@ -8,7 +8,7 @@ from app.repositories.user import UserRepository
 from app.security.authorization.jwt_generator import jwt_generator
 from app.utilities.exceptions.database import EntityDoesNotExist, EntityAlreadyExists
 from app.utilities.exceptions.http.exc_400 import http_exc_400_credentials_bad_signup_request
-from app.utilities.exceptions.http.exc_404 import http_404_exc_id_not_found_request
+from app.utilities.exceptions.http.exc_404 import http_404_exc_user_id_not_found_request
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
 
 router = fastapi.APIRouter(prefix="/users", tags=["users"])
@@ -42,7 +42,7 @@ async def get_users(
 
 
 @router.get(
-    path="/{user_id}",
+    path="/user/{user_id}",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_200_OK,
 )
@@ -55,7 +55,7 @@ async def get_user(
         db_user = await user_repo.get_user_by_id(user_id)
 
     except EntityDoesNotExist:
-        raise await http_404_exc_id_not_found_request(_id=user_id)
+        raise await http_404_exc_user_id_not_found_request(_id=user_id)
 
     return UserInResponse(
         id=db_user.id,
@@ -69,7 +69,7 @@ async def get_user(
 
 
 @router.post(
-    path="",
+    path="/create",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_201_CREATED,
     dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
@@ -100,7 +100,7 @@ async def create_user(
 
 
 @router.put(
-    path="/{user_id}",
+    path="/update/{user_id}",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_200_OK,
     dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
@@ -114,7 +114,7 @@ async def update_user(
     try:
         db_user = await user_repo.get_user_by_id(user_id)
     except EntityDoesNotExist:
-        raise await http_404_exc_id_not_found_request(_id=user_id)
+        raise await http_404_exc_user_id_not_found_request(_id=user_id)
 
     if user.username is not None:
         try:
@@ -142,7 +142,7 @@ async def update_user(
 
 
 @router.delete(
-    path="/{user_id}",
+    path="/delete/{user_id}",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_200_OK,
     dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
@@ -156,7 +156,7 @@ async def delete_user(
         db_user = await user_repo.delete_user_by_id(user_id=user_id)
 
     except EntityDoesNotExist:
-        raise await http_404_exc_id_not_found_request(_id=user_id)
+        raise await http_404_exc_user_id_not_found_request(_id=user_id)
 
     return UserInResponse(
         id=db_user.id,
@@ -170,7 +170,7 @@ async def delete_user(
 
 
 @router.get(
-    path="/{user_id}/roles",
+    path="/user/{user_id}/roles",
     response_model=list[RoleInResponse],
     status_code=fastapi.status.HTTP_200_OK,
 )
@@ -183,7 +183,7 @@ async def get_user_roles(
         db_user = await user_repo.get_user_by_id(user_id)
 
     except EntityDoesNotExist:
-        raise await http_404_exc_id_not_found_request(_id=user_id)
+        raise await http_404_exc_user_id_not_found_request(_id=user_id)
 
     db_roles = await user_repo.get_roles_for_user(user_id=db_user.id)
     db_role_list = list()
