@@ -60,11 +60,9 @@ class RoleEventTypeRepository(BaseRepository):
             event_type_id: int,
             permission_update: RoleEventTypeInUpdate
     ) -> RoleEventType:
-        select_stmt = sqlalchemy.select(RoleEventType)\
-            .where(RoleEventType.role_id == role_id)\
-            .where(RoleEventType.event_type_id == event_type_id)
-        query = await self.async_session.execute(statement=select_stmt)
-        update_permissions = query.scalar()
+        update_permissions = await self.get_permissions_by_role_id_and_event_type_id(
+            role_id=role_id, event_type_id=event_type_id
+        )
 
         if not update_permissions:
             raise EntityDoesNotExist(f"RoleEventType with role_id {role_id} and event_type_id {event_type_id} does not exist!")
@@ -91,11 +89,10 @@ class RoleEventTypeRepository(BaseRepository):
             role_id: int,
             event_type_id: int,
     ) -> RoleEventType:
-        select_stmt = sqlalchemy.select(RoleEventType)\
-            .where(RoleEventType.role_id == role_id)\
-            .where(RoleEventType.event_type_id == event_type_id)
-        query = await self.async_session.execute(statement=select_stmt)
-        permissions_to_delete = query.scalar()
+
+        permissions_to_delete = await self.get_permissions_by_role_id_and_event_type_id(
+            role_id=role_id, event_type_id=event_type_id
+        )
 
         if not permissions_to_delete:
             raise EntityDoesNotExist(f"RoleEventType with role_id {role_id} and event_type_id {event_type_id} does not exist!")

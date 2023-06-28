@@ -1,7 +1,8 @@
 import sqlalchemy
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship, Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
-
+from sqlalchemy.orm import (relationship as sqlalchemy_relationship,
+                            Mapped as SQLAlchemyMapped,
+                            mapped_column as sqlalchemy_mapped_column)
 from app.database.table import Base
 
 
@@ -30,5 +31,6 @@ class RoleEventType(Base):
         default=False,
         name="CAN_ADD")
 
-    role = relationship("Role")
-    event_type = relationship("EventType")
+    # role = sqlalchemy_relationship("Role", back_populates="role_event_types")
+    # event_type = sqlalchemy_relationship("EventType", back_populates="role_event_types")
+

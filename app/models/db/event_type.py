@@ -23,6 +23,6 @@ class EventType(Base):
         nullable=True,
         name="DESCRIPTION")
 
-    roles = sqlalchemy_relationship("Role", secondary="ROLE_EVENT_TYPE", back_populates="event_types")
+    # role_event_types = sqlalchemy_relationship("RoleEventType", back_populates="event_type")
 
     __mapper_args__ = {"eager_defaults": True}

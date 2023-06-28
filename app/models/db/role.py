@@ -20,7 +20,7 @@ class Role(Base):
         nullable=False,
         name="NAME")
 
-    users = sqlalchemy_relationship("User", secondary=user_roles, back_populates="roles")
-    event_types = sqlalchemy_relationship("EventType", secondary="ROLE_EVENT_TYPE", back_populates="roles")
+    # users = sqlalchemy_relationship("User", secondary=user_roles, back_populates="roles")
+    # role_event_types = sqlalchemy_relationship("RoleEventType", back_populates="role")
 
     __mapper_args__ = {"eager_defaults": True}
