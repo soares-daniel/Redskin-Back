@@ -3,6 +3,7 @@ import typing
 import sqlalchemy
 from sqlalchemy.sql import functions as sqlalchemy_functions
 
+from app.models.schemas.user_role import UserRoleInAssign, UserRoleInRemove
 from app.repositories.base import BaseRepository
 from app.models.db.role import Role
 from app.models.db.user import User
@@ -160,7 +161,7 @@ class UserRepository(BaseRepository):
 
         return db_user  # type: ignore
 
-    async def assign_role_to_user(self, user_id: int, role_id: int) -> None:
+    async def assign_role_to_user(self, user_id: int, role_id: int) -> UserRoleInAssign:
         # Ensure both user and role exist
         user_stmt = sqlalchemy.select(User).where(User.id == user_id)
         user_query = await self.async_session.execute(user_stmt)
@@ -181,6 +182,28 @@ class UserRepository(BaseRepository):
         except Exception as e:
             await self.async_session.rollback()
             raise e
+
+        return UserRoleInAssign(username=user.username, role_name=role.name)
+
+    async def remove_role_from_user(self, user_id: int, role_id: int) -> UserRoleInRemove:
+        # Ensure relation between user and role exists
+        stmt = sqlalchemy.select(user_roles).where(user_roles.c.USER_ID == user_id, user_roles.c.ROLE_ID == role_id)
+        query = await self.async_session.execute(stmt)
+        user_role = query.scalar_one_or_none()
+
+        if user_role is None:
+            raise EntityDoesNotExist(f"User with id {user_id} and Role with id {role_id} are not related!")
+
+        # Remove the role from the user by deleting the row from user_roles
+        stmt = user_roles.delete().where(user_roles.c.USER_ID == user_id, user_roles.c.ROLE_ID == role_id)
+        try:
+            await self.async_session.execute(stmt)
+            await self.async_session.commit()
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
+
+        return UserRoleInRemove(username=user_role.username, role_name=user_role.role_name)
 
     async def get_roles_for_user(self, user_id: int) -> typing.Sequence[Role]:
         # Get the role_ids for the user from the user_roles table

@@ -40,3 +40,11 @@ def http_404_username_details(username: str) -> str:
 
 def http_404_email_details(email: str) -> str:
     return f"Either the user with email `{email}` doesn't exist, has been deleted, or you are not authorized!"
+
+
+def http_404_user_role_details(user_id: int, role_id: int) -> str:
+    return f"User with id {user_id} or Role with id {role_id} does not exist!"
+
+
+def http_404_user_role_relation_details(user_id: int, role_id: int) -> str:
+    return f"User with id {user_id} does not have a role with id {role_id}"

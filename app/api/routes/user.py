@@ -2,13 +2,18 @@ import fastapi
 
 from app.api.dependencies.repository import get_repository
 from app.api.dependencies.role import is_user_in_role
+from app.api.dependencies.service import get_service
+from app.models.schemas.event_operation import EventOperation
 from app.models.schemas.role import RoleInResponse
 from app.models.schemas.user import UserInCreate, UserInResponse, UserInUpdate, UserWithToken
+from app.models.schemas.user_role import UserRoleInAssign, UserRoleInRemove
 from app.repositories.user import UserRepository
 from app.security.authorization.jwt_generator import jwt_generator
+from app.services.notification import NotificationService
 from app.utilities.exceptions.database import EntityDoesNotExist, EntityAlreadyExists
 from app.utilities.exceptions.http.exc_400 import http_exc_400_credentials_bad_signup_request
-from app.utilities.exceptions.http.exc_404 import http_404_exc_user_id_not_found_request
+from app.utilities.exceptions.http.exc_404 import http_404_exc_user_id_not_found_request, \
+    http_404_exc_user_role_not_found_request, http_404_exc_user_role_relation_not_found_request
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
 
 router = fastapi.APIRouter(prefix="/users", tags=["users"])
@@ -73,10 +78,12 @@ async def get_user(
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_201_CREATED,
     dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
+
 )
 async def create_user(
         user_create: UserInCreate,
-        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
 ) -> UserInResponse:
     """Create user"""
     try:
@@ -88,7 +95,7 @@ async def create_user(
     new_user = await user_repo.create_user(user_create=user_create)
     access_token = jwt_generator.generate_access_token(user=new_user)
 
-    return UserInResponse(
+    response = UserInResponse(
         id=new_user.id,
         authorized_user=UserWithToken(
             token=access_token,
@@ -97,6 +104,10 @@ async def create_user(
             updated_at=new_user.updated_at,
         )
     )
+
+    await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_CREATE)
+
+    return response
 
 
 @router.put(
@@ -108,11 +119,12 @@ async def create_user(
 async def update_user(
         user_id: int,
         user: UserInUpdate,
-        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
 ) -> UserInResponse:
     """Update user"""
     try:
-        db_user = await user_repo.get_user_by_id(user_id)
+        await user_repo.get_user_by_id(user_id)
     except EntityDoesNotExist:
         raise await http_404_exc_user_id_not_found_request(_id=user_id)
 
@@ -130,7 +142,7 @@ async def update_user(
 
     access_token = jwt_generator.generate_access_token(user=updated_user)
 
-    return UserInResponse(
+    response = UserInResponse(
         id=updated_user.id,
         authorized_user=UserWithToken(
             token=access_token,
@@ -139,6 +151,10 @@ async def update_user(
             updated_at=updated_user.updated_at,
         )
     )
+
+    await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_UPDATE)
+
+    return response
 
 
 @router.delete(
@@ -149,7 +165,8 @@ async def update_user(
 )
 async def delete_user(
         user_id: int,
-        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository))
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
 ) -> UserInResponse:
     """Delete user"""
     try:
@@ -158,7 +175,7 @@ async def delete_user(
     except EntityDoesNotExist:
         raise await http_404_exc_user_id_not_found_request(_id=user_id)
 
-    return UserInResponse(
+    response = UserInResponse(
         id=db_user.id,
         authorized_user=UserWithToken(
             token="",
@@ -167,6 +184,10 @@ async def delete_user(
             updated_at=db_user.updated_at,
         ),
     )
+
+    await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_DELETE)
+
+    return response
 
 
 @router.get(
@@ -195,3 +216,57 @@ async def get_user_roles(
         db_role_list.append(role)
 
     return db_role_list
+
+
+@router.post(
+    path="/user/{user_id}/assign/{role_id}",
+    response_model=UserRoleInAssign,
+    status_code=fastapi.status.HTTP_201_CREATED,
+    dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
+)
+async def assign_role_to_user(
+        user_id: int,
+        role_id: int,
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
+) -> UserRoleInAssign:
+    """Assign role to user"""
+    try:
+        user_role = await user_repo.assign_role_to_user(user_id=user_id, role_id=role_id)
+
+    except EntityDoesNotExist:
+        raise await http_404_exc_user_role_not_found_request(user_id=user_id, role_id=role_id)
+
+    await notif_service.send_user_role_notification(
+        user_role=user_role,
+        event_operation=EventOperation.USER_ROLE_ASSIGN
+    )
+
+    return user_role
+
+
+@router.delete(
+    path="/user/{user_id}/remove/{role_id}",
+    response_model=UserRoleInRemove,
+    status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
+)
+async def remove_role_from_user(
+        user_id: int,
+        role_id: int,
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
+) -> UserRoleInRemove:
+    """Remove role from user"""
+    try:
+        user_role = await user_repo.remove_role_from_user(user_id=user_id, role_id=role_id)
+
+    except EntityDoesNotExist:
+        raise await http_404_exc_user_role_relation_not_found_request(user_id=user_id, role_id=role_id)
+
+    await notif_service.send_user_role_notification(
+        user_role=user_role,
+        event_operation=EventOperation.USER_ROLE_REMOVE
+    )
+
+    return user_role

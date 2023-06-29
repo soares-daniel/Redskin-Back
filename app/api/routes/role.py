@@ -1,12 +1,15 @@
 import fastapi
 
 from app.api.dependencies.repository import get_repository
+from app.api.dependencies.service import get_service
+from app.models.schemas.event_operation import EventOperation
 from app.models.schemas.role import RoleInCreate, RoleInResponse, RoleInUpdate
 from app.models.schemas.role_event_type import RoleEventTypeInResponse
 from app.repositories.role import RoleRepository
 from app.models.db.user import User
 from app.api.dependencies.authentication import get_current_user
 from app.repositories.role_event_type import RoleEventTypeRepository
+from app.services.notification import NotificationService
 from app.utilities.exceptions.database import EntityDoesNotExist
 from app.utilities.exceptions.http.exc_404 import http_404_exc_user_id_not_found_request
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
@@ -29,7 +32,7 @@ async def get_roles(
 
 
 @router.get(
-    path="role/{role_id}",
+    path="/role/{role_id}",
     response_model=RoleInResponse,
     status_code=fastapi.status.HTTP_200_OK,
 )
@@ -54,13 +57,18 @@ async def get_role(
 async def create_role(
         role_create: RoleInCreate,
         current_user: User = fastapi.Depends(get_current_user),
-        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository))
+        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
 ) -> RoleInResponse:
     """Create new role"""
 
-    db_role = await role_repo.create_role(role_create=role_create)
+    created_role = await role_repo.create_role(role_create=role_create)
 
-    return RoleInResponse.from_orm(db_role)
+    response = RoleInResponse.from_orm(created_role)
+
+    await notif_service.send_role_notification(role=response, event_operation=EventOperation.ROLE_CREATE)
+
+    return response
 
 
 @router.put(
@@ -72,11 +80,12 @@ async def update_role(
         role_id: int,
         role_update: RoleInUpdate,
         current_user: User = fastapi.Depends(get_current_user),
-        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository))
+        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
 ) -> RoleInResponse:
     """Update role"""
     try:
-        db_role = await role_repo.get_role_by_id(role_id)
+        await role_repo.get_role_by_id(role_id)
     except EntityDoesNotExist:
         raise await http_404_exc_user_id_not_found_request(_id=role_id)
 
@@ -85,7 +94,11 @@ async def update_role(
     if updated_role is None:
         raise await http_500_exc_internal_server_error()
 
-    return RoleInResponse.from_orm(updated_role)
+    response = RoleInResponse.from_orm(updated_role)
+
+    await notif_service.send_role_notification(role=response, event_operation=EventOperation.ROLE_UPDATE)
+
+    return response
 
 
 @router.delete(
@@ -96,7 +109,8 @@ async def update_role(
 async def delete_role(
         role_id: int,
         current_user: User = fastapi.Depends(get_current_user),
-        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository))
+        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
 ) -> RoleInResponse:
     """Delete role"""
 
@@ -105,7 +119,11 @@ async def delete_role(
     if deleted_role is None:
         raise fastapi.HTTPException(status_code=404, detail="Role not found")
 
-    return RoleInResponse.from_orm(deleted_role)
+    response = RoleInResponse.from_orm(deleted_role)
+
+    await notif_service.send_role_notification(role=response, event_operation=EventOperation.ROLE_DELETE)
+
+    return response
 
 
 @router.get(
