@@ -76,7 +76,7 @@ class BaseSettings(pydantic.BaseSettings):
     DISCORD_CLIENT_ID: str = decouple.config("DISCORD_CLIENT_ID", cast=str)  # type: ignore
     DISCORD_SERVER_PORT: int = decouple.config("DISCORD_SERVER_PORT", cast=int)  # type: ignore
     DISCORD_NOTIFICATION_ENDPOINT: str = decouple.config("DISCORD_NOTIFICATION_ENDPOINT", cast=str)  # type: ignore
-    DISCORD_URL: str = f"http://{SERVER_HOST}{DISCORD_NOTIFICATION_ENDPOINT}:{DISCORD_SERVER_PORT}"
+    DISCORD_URL: str = f"http://{SERVER_HOST}:{DISCORD_SERVER_PORT}{DISCORD_NOTIFICATION_ENDPOINT}"
 
     # Superuser
     SUPER_USER: str = decouple.config("SUPER_USER", cast=str)  # type: ignore

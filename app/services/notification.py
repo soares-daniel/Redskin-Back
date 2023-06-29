@@ -16,8 +16,8 @@ class NotificationService(BaseService):
     async def send_event_notification(event: EventInResponse, event_operation: EventOperation) -> None:
         async with aiohttp.ClientSession() as session:
             payload = {
-                "event_operation": event_operation,
-                "event": event
+                "event_operation": event_operation.value,
+                "event": event.json()
             }
             async with session.post(settings.DISCORD_URL, json=payload) as resp:
                 print(resp.status)
@@ -27,8 +27,8 @@ class NotificationService(BaseService):
     async def send_event_type_notification(event_type: EventTypeInResponse, event_operation: EventOperation) -> None:
         async with aiohttp.ClientSession() as session:
             payload = {
-                "event_operation": event_operation,
-                "event": event_type
+                "event_operation": event_operation.value,
+                "event": event_type.json()
             }
             async with session.post(settings.DISCORD_URL, json=payload) as resp:
                 print(resp.status)
@@ -38,8 +38,8 @@ class NotificationService(BaseService):
     async def send_user_notification(user: UserInResponse, event_operation: EventOperation) -> None:
         async with aiohttp.ClientSession() as session:
             payload = {
-                "event_operation": event_operation,
-                "event": user
+                "event_operation": event_operation.value,
+                "event": user.json()
             }
             async with session.post(settings.DISCORD_URL, json=payload) as resp:
                 print(resp.status)
@@ -49,8 +49,8 @@ class NotificationService(BaseService):
     async def send_role_notification(role: RoleInResponse, event_operation: EventOperation) -> None:
         async with aiohttp.ClientSession() as session:
             payload = {
-                "event_operation": event_operation,
-                "event": role
+                "event_operation": event_operation.value,
+                "event": role.json()
             }
             async with session.post(settings.DISCORD_URL, json=payload) as resp:
                 print(resp.status)
@@ -63,8 +63,8 @@ class NotificationService(BaseService):
     ) -> None:
         async with aiohttp.ClientSession() as session:
             payload = {
-                "event_operation": event_operation,
-                "event": user_role
+                "event_operation": event_operation.value,
+                "event": user_role.json()
             }
             async with session.post(settings.DISCORD_URL, json=payload) as resp:
                 print(resp.status)
@@ -77,8 +77,8 @@ class NotificationService(BaseService):
     ) -> None:
         async with aiohttp.ClientSession() as session:
             payload = {
-                "event_operation": event_operation,
-                "event": permission
+                "event_operation": event_operation.value,
+                "event": permission.json()
             }
             async with session.post(settings.DISCORD_URL, json=payload) as resp:
                 print(resp.status)
