@@ -9,11 +9,12 @@ from app.repositories.event import EventRepository
 from app.models.db.user import User
 from app.api.dependencies.authentication import get_current_user
 from app.repositories.event_type import EventTypeRepository
+from app.repositories.role_event_type import RoleEventTypeRepository
+from app.repositories.user import UserRepository
 from app.services.notification import NotificationService
 from app.utilities.authorization.permissions import check_event_type_permission
 from app.utilities.exceptions.database import EntityDoesNotExist
 from app.utilities.exceptions.http.exc_404 import http_404_exc_event_id_not_found_request
-from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
 
 router = fastapi.APIRouter(prefix="/events", tags=["events"])
 
@@ -87,7 +88,9 @@ async def get_events_for_user(
 async def get_event_for_user(
         event_id: int,
         current_user: User = fastapi.Depends(get_current_user),
-        event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
+        event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository)),
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        permission_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository))
 ) -> EventInResponse:
     """Get event by id"""
     try:
@@ -95,7 +98,13 @@ async def get_event_for_user(
     except EntityDoesNotExist:
         raise await http_404_exc_event_id_not_found_request(_id=event_id)
 
-    await check_event_type_permission(current_user=current_user, event_type=db_event.event_type, action='see')
+    await check_event_type_permission(
+        user_repo=user_repo, 
+        permission_repo=permission_repo, 
+        current_user=current_user, 
+        event_type=db_event.event_type, 
+        action='see'
+    )
 
     return EventInResponse(
         id=db_event.id,
@@ -119,16 +128,21 @@ async def create_event(
         event_create: EventInCreate,
         current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository)),
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        permission_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository)),
         notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
 ) -> EventInResponse:
     """Create new event"""
-    await check_event_type_permission(current_user=current_user, event_type=event_create.event_type, action='add')
-
+    await check_event_type_permission(
+        user_repo=user_repo,
+        permission_repo=permission_repo,
+        current_user=current_user,
+        event_type=event_create.event_type,
+        action='add'
+    )
     db_event = await event_repo.create_event(event_create=event_create)
 
-    await notif_service.send_event_notification(event=db_event, event_operation=EventOperation.CREATE)
-
-    return EventInResponse(
+    response = EventInResponse(
         id=db_event.id,
         created_by=db_event.created_by,
         event_type=db_event.event_type,
@@ -139,6 +153,10 @@ async def create_event(
         created_at=db_event.created_at,
         updated_at=db_event.updated_at,
     )
+
+    await notif_service.send_event_notification(event=response, event_operation=EventOperation.EVENT_CREATE)
+
+    return response
 
 
 @router.put(
@@ -151,6 +169,8 @@ async def update_event(
         event_update: EventInUpdate,
         current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository)),
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        permission_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository)),
         notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
 ) -> EventInResponse:
     """Update event"""
@@ -160,16 +180,16 @@ async def update_event(
     except EntityDoesNotExist:
         raise await http_404_exc_event_id_not_found_request(_id=event_id)
 
+    await check_event_type_permission(
+        user_repo=user_repo,
+        permission_repo=permission_repo,
+        current_user=current_user,
+        event_type=db_event.event_type,
+        action='edit'
+    )
     updated_event = await event_repo.update_event_by_id(event_id=event_id, event_update=event_update)
 
-    await check_event_type_permission(current_user=current_user, event_type=updated_event.event_type, action='edit')
-
-    if updated_event is None:
-        raise await http_500_exc_internal_server_error()
-
-    await notif_service.send_event_notification(event=db_event, event_operation=EventOperation.UPDATE)
-
-    return EventInResponse(
+    response = EventInResponse(
         id=updated_event.id,
         created_by=updated_event.created_by,
         event_type=updated_event.event_type,
@@ -181,6 +201,10 @@ async def update_event(
         updated_at=updated_event.updated_at,
     )
 
+    await notif_service.send_event_notification(event=response, event_operation=EventOperation.EVENT_UPDATE)
+
+    return response
+
 
 @router.delete(
     path="/delete/{event_id}",
@@ -191,20 +215,28 @@ async def delete_event(
         event_id: int,
         current_user: User = fastapi.Depends(get_current_user),
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository)),
-        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        permission_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService)),
 ) -> EventInResponse:
     """Delete event"""
 
+    try:
+        db_event = await event_repo.get_event_by_id(event_id)
+
+    except EntityDoesNotExist:
+        raise await http_404_exc_event_id_not_found_request(_id=event_id)
+
+    await check_event_type_permission(
+        user_repo=user_repo,
+        permission_repo=permission_repo,
+        current_user=current_user,
+        event_type=db_event.event_type,
+        action='edit'
+    )
     deleted_event = await event_repo.delete_event_by_id(event_id)
 
-    await check_event_type_permission(current_user=current_user, event_type=deleted_event.event_type, action='edit')
-
-    if deleted_event is None:
-        raise fastapi.HTTPException(status_code=404, detail="Event not found")
-
-    await notif_service.send_event_notification(event=deleted_event, event_operation=EventOperation.DELETE)
-
-    return EventInResponse(
+    response = EventInResponse(
         id=deleted_event.id,
         created_by=deleted_event.created_by,
         event_type=deleted_event.event_type,
@@ -215,6 +247,10 @@ async def delete_event(
         created_at=deleted_event.created_at,
         updated_at=deleted_event.updated_at,
     )
+
+    await notif_service.send_event_notification(event=response, event_operation=EventOperation.EVENT_DELETE)
+
+    return response
 
 
 @router.get(
