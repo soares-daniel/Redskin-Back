@@ -16,11 +16,11 @@ class Event(Base):
         autoincrement=True,
         name="ID")
     created_by: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
-        ForeignKey("USER.ID"),
+        ForeignKey("USER.ID", ondelete="CASCADE"),
         nullable=False,
         name="CREATED_BY")
     event_type: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
-        ForeignKey("EVENT_TYPE.ID"),
+        ForeignKey("EVENT_TYPE.ID", ondelete="CASCADE"),
         nullable=False,
         name="EVENT_TYPE")
     title: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(

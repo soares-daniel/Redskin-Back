@@ -11,11 +11,11 @@ class RoleEventType(Base):
     __tablename__ = "ROLE_EVENT_TYPE"
 
     role_id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
-        ForeignKey("ROLE.ID"),
+        ForeignKey("ROLE.ID", ondelete="CASCADE"),
         primary_key=True,
         name="ROLE_ID")
     event_type_id: SQLAlchemyMapped[int] = sqlalchemy_mapped_column(
-        ForeignKey("EVENT_TYPE.ID"),
+        ForeignKey("EVENT_TYPE.ID", ondelete="CASCADE"),
         primary_key=True,
         name="EVENT_TYPE_ID")
     can_edit: SQLAlchemyMapped[bool] = sqlalchemy_mapped_column(
