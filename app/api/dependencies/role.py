@@ -11,8 +11,9 @@ def is_user_in_role(role: str):
             current_user: User = Depends(get_current_user),
             user_repo: UserRepository = Depends(get_repository(repo_type=UserRepository))
     ) -> User:
-        db_user = await user_repo.get_user_by_id(current_user.id)
-        if role not in db_user.roles:
-            raise http_403_exc_missing_role()
-        return current_user
+        roles = await user_repo.get_roles_for_user(user_id=current_user.id)
+        for entry in roles:
+            if entry.name == role:
+                return current_user
+        raise http_403_exc_missing_role()
     return _is_user_in_role
