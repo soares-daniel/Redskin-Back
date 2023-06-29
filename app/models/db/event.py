@@ -31,12 +31,12 @@ class Event(Base):
         sqlalchemy.String(length=1024),
         nullable=True,
         name="DESCRIPTION")
-    start_date: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
-        sqlalchemy.String(length=1024),
+    start_date: SQLAlchemyMapped[datetime.datetime] = sqlalchemy_mapped_column(
+        sqlalchemy.DateTime(timezone=True),
         nullable=False,
         name="START_DATE")
-    end_date: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
-        sqlalchemy.String(length=1024),
+    end_date: SQLAlchemyMapped[datetime.datetime] = sqlalchemy_mapped_column(
+        sqlalchemy.DateTime(timezone=True),
         nullable=False,
         name="END_DATE")
     created_at: SQLAlchemyMapped[datetime.datetime] = sqlalchemy_mapped_column(
@@ -47,7 +47,6 @@ class Event(Base):
         sqlalchemy.DateTime(timezone=True),
         nullable=True,
         server_onupdate=sqlalchemy.schema.FetchedValue(for_update=True),
-        name="UPDATED_AT"
-    )
+        name="UPDATED_AT")
 
     __mapper_args__ = {"eager_defaults": True}
