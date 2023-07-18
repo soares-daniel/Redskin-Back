@@ -12,10 +12,6 @@ def routes_filter(record):
     return record["extra"].get("name") == "routes"
 
 
-def stdout_filter(record):
-    return record["extra"].get("name") == "stdout"
-
-
 def configure_logging():
     """Configure logging for the app"""
     logger.remove()
