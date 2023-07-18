@@ -15,3 +15,5 @@
 .env
 # Cache
 **/__pycache__/
+# Logs
+**/*.log
