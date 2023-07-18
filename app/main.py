@@ -5,11 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config.events import shutdown_handler, startup_handler
 from app.api.endpoints import main_router
 from app.config.manager import settings
+from app.utilities.logging.logging_config import configure_logging
 
 
 def init_app() -> fastapi.FastAPI:
 
     new_app = fastapi.FastAPI(**settings.set_app_attributes)  # type: ignore
+
+    configure_logging()
 
     new_app.add_middleware(
         CORSMiddleware,

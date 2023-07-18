@@ -65,7 +65,7 @@ class BaseSettings(pydantic.BaseSettings):
     # Logging
     LOGGING_LEVEL: int = logging.INFO
     LOGGERS: tuple[str, str] = ("uvicorn.asgi", "uvicorn.access")
-
+    LOGGING_FORMAT: str = decouple.config("LOGGING_FORMAT", cast=str)  # type: ignore
     # Hashing
     HASHING_ALGORITHM_LAYER_1: str = decouple.config("HASHING_ALGORITHM_LAYER_1", cast=str)  # type: ignore
     HASHING_ALGORITHM_LAYER_2: str = decouple.config("HASHING_ALGORITHM_LAYER_2", cast=str)  # type: ignore
