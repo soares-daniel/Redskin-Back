@@ -13,18 +13,15 @@ from app.models.schemas.event_operation import EventOperation
 
 
 class NotificationService(BaseService):
-    @staticmethod
-    async def send_notification(
-            url: str,
-            payload: dict
-    ) -> None:
+
+    async def send_notification(self, url: str, payload: dict) -> None:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json=payload) as resp:
-                    print(resp.status)
-                    print(await resp.text())
+                    self.debug_logger.debug(resp.status)
+                    self.debug_logger.debug(await resp.text())
         except ServerDisconnectedError:
-            print("Server disconnected")
+            self.stdout_logger.warning("Notification Server disconnected")
 
     async def send_event_notification(
             self,
