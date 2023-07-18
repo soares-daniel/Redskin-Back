@@ -1,7 +1,5 @@
 import sqlalchemy
-from sqlalchemy.orm import (relationship as sqlalchemy_relationship,
-                            Mapped as SQLAlchemyMapped,
-                            mapped_column as sqlalchemy_mapped_column)
+from sqlalchemy.orm import Mapped as SQLAlchemyMapped, mapped_column as sqlalchemy_mapped_column
 
 from app.database.table import Base
 

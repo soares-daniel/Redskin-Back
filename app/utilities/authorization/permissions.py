@@ -4,7 +4,6 @@ from app.repositories.user import UserRepository
 from app.utilities.exceptions.http.exc_403 import http_403_exc_permission_denied
 
 
-# TODO: Optimize this function
 async def check_event_type_permission(
         user_repo: UserRepository,
         permission_repo: RoleEventTypeRepository,

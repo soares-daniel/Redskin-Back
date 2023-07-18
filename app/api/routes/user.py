@@ -11,11 +11,11 @@ from app.repositories.user import UserRepository
 from app.security.authorization.jwt_generator import jwt_generator
 from app.services.notification import NotificationService
 from app.utilities.exceptions.database import EntityDoesNotExist, EntityAlreadyExists
+from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
 from app.utilities.exceptions.http.exc_400 import http_400_exc_bad_username_request
 from app.utilities.exceptions.http.exc_404 import (http_404_exc_user_id_not_found_request,
                                                    http_404_exc_user_role_not_found_request,
                                                    http_404_exc_user_role_relation_not_found_request)
-from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
 
 router = fastapi.APIRouter(prefix="/users", tags=["users"])
 
@@ -91,7 +91,7 @@ async def create_user(
         await user_repo.is_username_taken(username=user_create.username)
 
     except EntityAlreadyExists:
-        raise await http_400_exc_bad_username_request()
+        raise await http_400_exc_bad_username_request(username=user_create.username)
 
     new_user = await user_repo.create_user(user_create=user_create)
     access_token = jwt_generator.generate_access_token(user=new_user)
@@ -134,7 +134,7 @@ async def update_user(
             await user_repo.is_username_taken(username=user.username)
 
         except EntityAlreadyExists:
-            raise await http_400_exc_bad_username_request()
+            raise await http_400_exc_bad_username_request(username=user.username)
 
     updated_user = await user_repo.update_user_by_id(user_id=user_id, user_update=user)
 

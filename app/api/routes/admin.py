@@ -78,4 +78,3 @@ async def setup(
                 ))
 
     return "Setup complete!"
-

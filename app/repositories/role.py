@@ -3,7 +3,6 @@ import typing
 import sqlalchemy
 from sqlalchemy.sql import functions as sqlalchemy_functions
 
-from app.models.db.user import User
 from app.repositories.base import BaseRepository
 from app.models.db.role import Role
 from app.models.schemas.role import RoleInCreate, RoleInUpdate
