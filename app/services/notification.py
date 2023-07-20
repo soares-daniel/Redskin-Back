@@ -1,5 +1,4 @@
 import aiohttp
-from aiohttp import ServerDisconnectedError
 
 from app.models.schemas.event_type import EventTypeInResponse
 from app.models.schemas.role import RoleInResponse
@@ -16,12 +15,13 @@ class NotificationService(BaseService):
 
     async def send_notification(self, url: str, payload: dict) -> None:
         try:
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=60)  # 60 seconds timeout, adjust as needed
+            async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(url, json=payload) as resp:
-                    self.debug_logger.debug(resp.status)
-                    self.debug_logger.debug(await resp.text())
-        except ServerDisconnectedError:
-            self.stdout_logger.warning("Notification Server disconnected")
+                    self.debug_logger.debug("Notification response status: " + str(resp.status))
+                    self.debug_logger.debug("Notification response text: " + await resp.text())
+        except aiohttp.ClientConnectorError:
+            self.stdout_logger.warning("Could not connect to Notification Server")
 
     async def send_event_notification(
             self,
@@ -32,6 +32,7 @@ class NotificationService(BaseService):
             "event_operation": event_operation.value,
             "event": event.json()
         }
+
         await self.send_notification(settings.DISCORD_URL, payload)
 
     async def send_event_type_notification(
