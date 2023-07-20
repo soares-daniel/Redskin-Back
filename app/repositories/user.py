@@ -58,7 +58,7 @@ class UserRepository(BaseRepository):
 
         return user
 
-    async def get_user_by_password_authentication(self, user_login: UserInLogin) -> User:
+    async def read_user_by_password_authentication(self, user_login: UserInLogin) -> User:
         """Get user by username and password from database"""
         self.logger.debug(f"Fetching user with username {user_login.username} from database")
 
