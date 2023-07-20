@@ -18,10 +18,10 @@ class NotificationService(BaseService):
             timeout = aiohttp.ClientTimeout(total=60)  # 60 seconds timeout, adjust as needed
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(url, json=payload) as resp:
-                    self.debug_logger.debug("Notification response status: " + str(resp.status))
-                    self.debug_logger.debug("Notification response text: " + await resp.text())
+                    self.logger.debug("Notification response status: " + str(resp.status))
+                    self.logger.debug("Notification response text: " + await resp.text())
         except aiohttp.ClientConnectorError:
-            self.stdout_logger.warning("Could not connect to Notification Server")
+            self.logger.warning("Could not connect to Notification Server")
 
     async def send_event_notification(
             self,

@@ -16,7 +16,7 @@ def configure_logging():
     """Configure logging for the app"""
     logger.remove()
     logger.add(sys.stdout, colorize=True, format=settings.LOGGING_FORMAT, level="INFO", enqueue=True)
-    logger.add("logs/debug_{time:YYYY-MM-DD}.log", filter=debug_filter, retention="7 days", rotation="00:00",
+    logger.add("logs/api_{time:YYYY-MM-DD}.log", retention="7 days", rotation="00:00",
                level="DEBUG", format=settings.LOGGING_FORMAT, enqueue=True)
     logger.add("logs/routes_{time:YYYY-MM-DD}.log", filter=routes_filter, retention="7 days", rotation="00:00",
                level="DEBUG", format=settings.LOGGING_FORMAT, enqueue=True)
