@@ -3,6 +3,7 @@ import typing
 import sqlalchemy
 from sqlalchemy.sql import functions as sqlalchemy_functions
 
+from app.models.db.role_event_type import RoleEventType
 from app.repositories.base import BaseRepository
 from app.models.db.role import Role
 from app.models.schemas.role import RoleInCreate, RoleInUpdate
@@ -142,4 +143,10 @@ class RoleRepository(BaseRepository):
 
         self.logger.debug(f"Found role with ID {role_id}. Fetching event type IDs...")
 
-        return [event_type.id for event_type in role.event_types]
+        event_type_stmt = sqlalchemy.select(RoleEventType).where(Role.id == role_id)
+        event_type_query = await self.async_session.execute(event_type_stmt)
+        event_type_ids = [role_event_type.event_type_id for role_event_type in event_type_query.scalars().all()]
+
+        self.logger.debug(f"Found {len(event_type_ids)} event type IDs for role with ID {role_id}")
+
+        return event_type_ids
