@@ -34,7 +34,6 @@ async def get_users(
         user = UserInResponse(
             id=db_user.id,
             username=db_user.username,
-            is_active=db_user.is_active,
             created_at=db_user.created_at,
             updated_at=db_user.updated_at,
         )
@@ -62,7 +61,6 @@ async def get_user(
     return UserInResponse(
         id=db_user.id,
         username=db_user.username,
-        is_active=db_user.is_active,
         created_at=db_user.created_at,
         updated_at=db_user.updated_at,
     )
@@ -92,7 +90,6 @@ async def create_user(
     response = UserInResponse(
         id=new_user.id,
         username=new_user.username,
-        is_active=new_user.is_active,
         created_at=new_user.created_at,
         updated_at=new_user.updated_at,
     )
@@ -135,7 +132,6 @@ async def update_user(
     response = UserInResponse(
         id=updated_user.id,
         username=updated_user.username,
-        is_active=updated_user.is_active,
         created_at=updated_user.created_at,
         updated_at=updated_user.updated_at,
     )
@@ -166,7 +162,6 @@ async def delete_user(
     response = UserInResponse(
         id=db_user.id,
         username=db_user.username,
-        is_active=db_user.is_active,
         created_at=db_user.created_at,
         updated_at=db_user.updated_at,
     )

@@ -41,7 +41,6 @@ async def login(
     return UserInResponse(
         id=db_user.id,
         username=db_user.username,
-        is_active=db_user.is_active,
         created_at=db_user.created_at,
         updated_at=db_user.updated_at,
     )

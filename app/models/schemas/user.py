@@ -21,6 +21,5 @@ class UserInLogin(BaseSchemaModel):
 class UserInResponse(BaseSchemaModel):
     id: int
     username: str
-    is_active: bool
     created_at: datetime.datetime
     updated_at: datetime.datetime | None
