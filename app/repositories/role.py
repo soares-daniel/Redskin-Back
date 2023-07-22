@@ -143,7 +143,7 @@ class RoleRepository(BaseRepository):
 
         self.logger.debug(f"Found role with ID {role_id}. Fetching event type IDs...")
 
-        event_type_stmt = sqlalchemy.select(RoleEventType).where(Role.id == role_id)
+        event_type_stmt = sqlalchemy.select(RoleEventType).where(RoleEventType.role_id == role_id)
         event_type_query = await self.async_session.execute(event_type_stmt)
         event_type_ids = [role_event_type.event_type_id for role_event_type in event_type_query.scalars().all()]
 
