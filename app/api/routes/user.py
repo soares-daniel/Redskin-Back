@@ -5,10 +5,9 @@ from app.api.dependencies.role import is_user_in_role
 from app.api.dependencies.service import get_service
 from app.models.schemas.event_operation import EventOperation
 from app.models.schemas.role import RoleInResponse
-from app.models.schemas.user import UserInCreate, UserInResponse, UserInUpdate, UserWithToken
+from app.models.schemas.user import UserInCreate, UserInResponse, UserInUpdate
 from app.models.schemas.user_role import UserRoleInAssign, UserRoleInRemove
 from app.repositories.user import UserRepository
-from app.security.authorization.jwt_generator import jwt_generator
 from app.services.notification import NotificationService
 from app.utilities.exceptions.database import EntityDoesNotExist, EntityAlreadyExists
 from app.utilities.exceptions.http.exc_500 import http_500_exc_internal_server_error
@@ -32,15 +31,12 @@ async def get_users(
     db_users = await user_repo.get_users()
     db_user_list = list()
     for db_user in db_users:
-        access_token = jwt_generator.generate_access_token(user=db_user)
         user = UserInResponse(
             id=db_user.id,
-            authorized_user=UserWithToken(
-                token=access_token,
-                username=db_user.username,
-                created_at=db_user.created_at,
-                updated_at=db_user.updated_at,
-            ),
+            username=db_user.username,
+            is_active=db_user.is_active,
+            created_at=db_user.created_at,
+            updated_at=db_user.updated_at,
         )
         db_user_list.append(user)
 
@@ -65,12 +61,10 @@ async def get_user(
 
     return UserInResponse(
         id=db_user.id,
-        authorized_user=UserWithToken(
-            token="",
-            username=db_user.username,
-            created_at=db_user.created_at,
-            updated_at=db_user.updated_at,
-        ),
+        username=db_user.username,
+        is_active=db_user.is_active,
+        created_at=db_user.created_at,
+        updated_at=db_user.updated_at,
     )
 
 
@@ -94,16 +88,13 @@ async def create_user(
         raise await http_400_exc_bad_username_request(username=user_create.username)
 
     new_user = await user_repo.create_user(user_create=user_create)
-    access_token = jwt_generator.generate_access_token(user=new_user)
 
     response = UserInResponse(
         id=new_user.id,
-        authorized_user=UserWithToken(
-            token=access_token,
-            username=new_user.username,
-            created_at=new_user.created_at,
-            updated_at=new_user.updated_at,
-        )
+        username=new_user.username,
+        is_active=new_user.is_active,
+        created_at=new_user.created_at,
+        updated_at=new_user.updated_at,
     )
 
     await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_CREATE)
@@ -141,16 +132,12 @@ async def update_user(
     if updated_user is None:
         raise await http_500_exc_internal_server_error()
 
-    access_token = jwt_generator.generate_access_token(user=updated_user)
-
     response = UserInResponse(
         id=updated_user.id,
-        authorized_user=UserWithToken(
-            token=access_token,
-            username=updated_user.username,
-            created_at=updated_user.created_at,
-            updated_at=updated_user.updated_at,
-        )
+        username=updated_user.username,
+        is_active=updated_user.is_active,
+        created_at=updated_user.created_at,
+        updated_at=updated_user.updated_at,
     )
 
     await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_UPDATE)
@@ -178,12 +165,10 @@ async def delete_user(
 
     response = UserInResponse(
         id=db_user.id,
-        authorized_user=UserWithToken(
-            token="",
-            username=db_user.username,
-            created_at=db_user.created_at,
-            updated_at=db_user.updated_at,
-        ),
+        username=db_user.username,
+        is_active=db_user.is_active,
+        created_at=db_user.created_at,
+        updated_at=db_user.updated_at,
     )
 
     await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_DELETE)
