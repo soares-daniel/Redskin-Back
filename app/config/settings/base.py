@@ -11,7 +11,7 @@ ROOT_DIR: pathlib.Path = pathlib.Path(__file__).parent.parent.parent.parent.reso
 class BaseSettings(pydantic.BaseSettings):
     TITLE: str = "LESPEAUXROUGES - API"
     DESCRIPTION: str = "API for LesPeauxRouges Dashboard"
-    VERSION: str = "0.0.1"
+    VERSION: str = "0.1.0"
     TIMEZONE: str = "Europe/Paris"
     DEBUG: bool = False
 
