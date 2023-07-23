@@ -47,7 +47,7 @@ class TestJWTGenerator:
         token = jose_jwt.encode(jwt_data, key=settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         jwt_generator = JWTGenerator()
 
-        details = jwt_generator.retrieve_details_from_token(token, settings.JWT_SECRET_KEY)
+        details = jwt_generator.retrieve_details_from_token(token)
 
         assert details == ["test_user"]
 
@@ -63,7 +63,7 @@ class TestJWTGenerator:
         jwt_generator = JWTGenerator()
 
         with pytest.raises(ValueError):
-            jwt_generator.retrieve_details_from_token("invalid_token", settings.JWT_SECRET_KEY)
+            jwt_generator.retrieve_details_from_token("invalid_token")
 
     #  Tests that retrieve_details_from_token method raises ValueError when given a revoked JWT token.
     def test_retrieve_details_from_token_revoked_token(self, mocker):
@@ -73,7 +73,7 @@ class TestJWTGenerator:
         mocker.patch.object(jwt_generator, "retrieve_details_from_token", side_effect=ValueError("Token has been revoked"))
 
         with pytest.raises(ValueError):
-            jwt_generator.retrieve_details_from_token(token, settings.JWT_SECRET_KEY)
+            jwt_generator.retrieve_details_from_token(token)
 
     #  Tests that retrieve_details_from_token method raises ValueError when given an expired JWT token.
     def test_retrieve_details_from_token_expired_token(self, mocker):
@@ -82,4 +82,4 @@ class TestJWTGenerator:
         jwt_generator = JWTGenerator()
 
         with pytest.raises(ValueError):
-            jwt_generator.retrieve_details_from_token(token, settings.JWT_SECRET_KEY)
+            jwt_generator.retrieve_details_from_token(token)
