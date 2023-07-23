@@ -43,7 +43,7 @@ jobs:
         with:
           host: ${{ secrets.HOST_DNS }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ secrets.TARGET_DIR }}
             git checkout master
