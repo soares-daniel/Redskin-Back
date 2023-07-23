@@ -24,7 +24,7 @@ jobs:
 
     - name: Set up .env
       run: |
-        echo "${{ secrets.ENCODED_ENV_VARIABLES }}" | base64 -d > env.json
+        echo "${{ secrets.ENV_ENCODED_VARIABLES }}" | base64 -d > env.json
         python -m json.tool env.json > env.json.tmp && mv env.json.tmp env.json
         python -c "import json; import os; with open('env.json') as f: data = json.load(f); [os.system(f'echo {k}={v} >> .env') for k, v in data.items()]"
         rm env.json
