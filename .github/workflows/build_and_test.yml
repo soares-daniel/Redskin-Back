@@ -22,6 +22,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Create .env from JSON GitHub Secret
+      run: |
+        echo "${{ secrets.ENV_VARIABLES }}" > env.json
+        python -m json.tool env.json > env.json.tmp && mv env.json.tmp env.json
+        python -c "import json; import os; with open('env.json') as f: data = json.load(f); [os.system(f'echo {k}={v} >> .env') for k, v in data.items()]"
+        rm env.json
+
     - name: Run Tests
       run: |
         pytest
