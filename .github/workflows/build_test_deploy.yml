@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,9 +26,16 @@ jobs:
       run: |
         echo "${{ secrets.ENV_VARIABLES }}" > .env
 
-    - name: Run Tests
-      run: |
-        pytest
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: test
+        run: |
+          pytest
+
 
   deploy:
     needs: build-and-test
