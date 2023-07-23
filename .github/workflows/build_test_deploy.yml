@@ -41,7 +41,7 @@ jobs:
           env:
             PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
             HOST_NAME: ${{ secrets.HOST_DNS }}
-            USER_NAME: ${{ secrets.USERNAME }}
+            USER_NAME: ${{ secrets.EC2_USERNAME }}
             TARGET: ${{ secrets.TARGET_DIR }}
 
           run: |
