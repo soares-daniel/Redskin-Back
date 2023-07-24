@@ -21,6 +21,7 @@ router = fastapi.APIRouter(prefix="/admin", tags=["admin"])
     path="/setup",
     response_model=str,
     status_code=fastapi.status.HTTP_201_CREATED,
+    dependencies=[fastapi.Depends(is_user_in_role(role="NEVERRR"))],
 )
 async def setup(
         user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
