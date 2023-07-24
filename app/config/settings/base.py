@@ -26,7 +26,6 @@ class BaseSettings(pydantic.BaseSettings):
     OPENAPI_PREFIX: str = ""
 
     # Database
-    DB_POSTGRES_URI: str = decouple.config("POSTGRES_URI", cast=str)
     DB_POSTGRES_NAME: str = decouple.config("POSTGRES_NAME", cast=str)
     DB_POSTGRES_HOST: str = decouple.config("POSTGRES_HOST", cast=str)
     DB_POSTGRES_PORT: int = decouple.config("POSTGRES_PORT", cast=int)
