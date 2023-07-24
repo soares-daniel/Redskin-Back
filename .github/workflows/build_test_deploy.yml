@@ -48,6 +48,9 @@ jobs:
             git fetch --all
             git reset --hard origin/master
             git pull origin master
+            cd ..
             docker compose down
+            cd Redskin-Back
             alembic upgrade head
+            cd ..
             docker compose up -d --build
