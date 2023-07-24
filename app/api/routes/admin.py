@@ -21,7 +21,6 @@ router = fastapi.APIRouter(prefix="/admin", tags=["admin"])
     path="/setup",
     response_model=str,
     status_code=fastapi.status.HTTP_201_CREATED,
-    dependencies=[fastapi.Depends(is_user_in_role(role="NEVERRR"))],
 )
 async def setup(
         user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
@@ -35,9 +34,9 @@ async def setup(
     username = settings.SUPER_USER
     password = settings.SUPER_PASS
 
-    event_type_names = {"scout_event": "Pfadfindertermine", "comitee_event": "Vorstandtermine", "chalet": "Chaletvermietung"}
+    event_type_names = {"scout_event": "Pfadfindertermine", "committee_event": "Vorstandtermine", "chalet": "Chaletvermietung"}
     event_types = []
-    role_names = ["admin", "super"]
+    role_names = ["super"]
     roles = []
 
     try:
@@ -70,7 +69,7 @@ async def setup(
         for event_type in event_types:
             await role_event_type_repo.create_permissions(
                 permission_create=RoleEventTypeInCreate(
-                    role_id=2,
+                    role_id=role.id,
                     event_type_id=event_type.id,
                     can_edit=True,
                     can_see=True,
