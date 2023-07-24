@@ -1,12 +1,16 @@
 import fastapi
 
+from app.api.dependencies.authentication import get_current_user
 from app.api.dependencies.repository import get_repository
 from app.api.dependencies.role import is_user_in_role
 from app.api.dependencies.service import get_service
+from app.models.db.user import User
 from app.models.schemas.event_operation import EventOperation
+from app.models.schemas.event_type import EventTypeInResponse
 from app.models.schemas.role import RoleInResponse
 from app.models.schemas.user import UserInCreate, UserInResponse, UserInUpdate
 from app.models.schemas.user_role import UserRoleInAssign, UserRoleInRemove
+from app.repositories.role_event_type import RoleEventTypeRepository
 from app.repositories.user import UserRepository
 from app.services.notification import NotificationService
 from app.utilities.exceptions.database import EntityDoesNotExist, EntityAlreadyExists
@@ -251,3 +255,32 @@ async def remove_role_from_user(
     )
 
     return user_role
+
+
+@router.get(
+    path="/user/event_types",
+    response_model=list[EventTypeInResponse],
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def get_event_types_for_user(
+        current_user: User = fastapi.Depends(get_current_user),
+        user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
+        role_event_type_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository)),
+) -> list[EventTypeInResponse]:
+    """Get event types for user"""
+    try:
+        roles = await user_repo.get_roles_for_user(user_id=current_user.id)
+
+    except EntityDoesNotExist:
+        return []
+
+    event_types_list = []
+    for role in roles:
+        event_types = await role_event_type_repo.get_event_types_for_role(role_id=role.id)
+        for event_type in event_types:
+            event_types_list.append(event_type)
+
+    # Remove duplicates
+    event_types_list = list(dict.fromkeys(event_types_list))
+
+    return [EventTypeInResponse.from_orm(event_type) for event_type in event_types_list]

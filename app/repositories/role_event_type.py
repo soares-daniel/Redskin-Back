@@ -3,6 +3,7 @@ import typing
 import sqlalchemy
 from sqlalchemy import func as sqlalchemy_functions
 
+from app.models.db.event_type import EventType
 from app.repositories.base import BaseRepository
 from app.models.db.role_event_type import RoleEventType
 from app.models.schemas.role_event_type import RoleEventTypeInCreate, RoleEventTypeInUpdate
@@ -149,3 +150,18 @@ class RoleEventTypeRepository(BaseRepository):
         self.logger.debug(f"Deleted permissions: {permissions_to_delete}")
 
         return permissions_to_delete
+
+    async def get_event_types_for_role(
+            self,
+            role_id: int
+    ) -> typing.Sequence[EventType]:
+        """Get all event types by role from database"""
+        self.logger.debug("Fetching all event types by role from database")
+
+        stmt = sqlalchemy.select(EventType).join(RoleEventType).where(RoleEventType.role_id == role_id)
+        query = await self.async_session.execute(statement=stmt)
+        event_types = query.scalars().all()
+
+        self.logger.debug(f"Found {len(event_types)} event types")
+
+        return event_types
