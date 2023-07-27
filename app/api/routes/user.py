@@ -258,7 +258,7 @@ async def remove_role_from_user(
 
 
 @router.get(
-    path="/user/event_types",
+    path="/event_types",
     response_model=list[EventTypeInResponse],
     status_code=fastapi.status.HTTP_200_OK,
 )
