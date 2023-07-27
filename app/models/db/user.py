@@ -16,8 +16,16 @@ class User(Base):
         name="ID")
     username: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
         sqlalchemy.String(length=50),
-        nullable=True,
+        nullable=False,
         name="USERNAME")
+    first_name: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
+        sqlalchemy.String(length=50),
+        nullable=True,
+        name="FIRST_NAME")
+    last_name: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
+        sqlalchemy.String(length=50),
+        nullable=True,
+        name="LAST_NAME")
     _hashed_password: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
         sqlalchemy.String(length=1024),
         nullable=True,
@@ -47,14 +55,14 @@ class User(Base):
 
     @property
     def hashed_password(self) -> str:
-        return self._hashed_password
+        return self._hashed_password  # type: ignore
 
     def set_hashed_password(self, hashed_password: str) -> None:
         self._hashed_password = hashed_password  # type: ignore
 
     @property
     def hash_salt(self) -> str:
-        return self._hash_salt
+        return self._hash_salt  # type: ignore
 
     def set_hash_salt(self, hash_salt: str) -> None:
         self._hash_salt = hash_salt  # type: ignore

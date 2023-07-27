@@ -21,7 +21,7 @@ def upgrade() -> None:
     op.create_table(
         'USER',
         sa.Column('ID', sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column('USERNAME', sa.String(length=50), nullable=True),
+        sa.Column('USERNAME', sa.String(length=50), nullable=False),
         sa.Column('HASHED_PASSWORD', sa.String(length=1024), nullable=True),
         sa.Column('HASH_SALT', sa.String(length=1024), nullable=True),
         sa.Column('IS_ACTIVE', sa.Boolean, nullable=True),

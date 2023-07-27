@@ -38,6 +38,8 @@ async def get_users(
         user = UserInResponse(
             id=db_user.id,
             username=db_user.username,
+            first_name=db_user.first_name,
+            last_name=db_user.last_name,
             created_at=db_user.created_at,
             updated_at=db_user.updated_at,
         )
@@ -65,6 +67,8 @@ async def get_user(
     return UserInResponse(
         id=db_user.id,
         username=db_user.username,
+        first_name=db_user.first_name,
+        last_name=db_user.last_name,
         created_at=db_user.created_at,
         updated_at=db_user.updated_at,
     )
@@ -89,11 +93,16 @@ async def create_user(
     except EntityAlreadyExists:
         raise await http_400_exc_bad_username_request(username=user_create.username)
 
-    new_user = await user_repo.create_user(user_create=user_create)
+    try:
+        new_user = await user_repo.create_user(user_create=user_create)
+    except ValueError as e:
+        raise await http_500_exc_internal_server_error(message=e.args[0])
 
     response = UserInResponse(
         id=new_user.id,
         username=new_user.username,
+        first_name=new_user.first_name,
+        last_name=new_user.last_name,
         created_at=new_user.created_at,
         updated_at=new_user.updated_at,
     )
@@ -136,6 +145,8 @@ async def update_user(
     response = UserInResponse(
         id=updated_user.id,
         username=updated_user.username,
+        first_name=updated_user.first_name,
+        last_name=updated_user.last_name,
         created_at=updated_user.created_at,
         updated_at=updated_user.updated_at,
     )
@@ -166,6 +177,8 @@ async def delete_user(
     response = UserInResponse(
         id=db_user.id,
         username=db_user.username,
+        first_name=db_user.first_name,
+        last_name=db_user.last_name,
         created_at=db_user.created_at,
         updated_at=db_user.updated_at,
     )
@@ -191,7 +204,7 @@ async def get_user_roles(
     except EntityDoesNotExist:
         raise await http_404_exc_user_id_not_found_request(_id=user_id)
 
-    db_roles = await user_repo.get_roles_for_user(user_id=db_user.id)
+    db_roles = await user_repo.get_roles_for_user(user_id=db_user.id)  # type: ignore
     db_role_list = list()
     for db_role in db_roles:
         role = RoleInResponse(
@@ -265,18 +278,19 @@ async def remove_role_from_user(
 async def get_event_types_for_user(
         current_user: User = fastapi.Depends(get_current_user),
         user_repo: UserRepository = fastapi.Depends(get_repository(repo_type=UserRepository)),
-        role_event_type_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository)),
+        role_event_type_repo: RoleEventTypeRepository = fastapi.Depends(
+            get_repository(repo_type=RoleEventTypeRepository)),
 ) -> list[EventTypeInResponse]:
     """Get event types for user"""
     try:
-        roles = await user_repo.get_roles_for_user(user_id=current_user.id)
+        roles = await user_repo.get_roles_for_user(user_id=current_user.id)  # type: ignore
 
     except EntityDoesNotExist:
         return []
 
     event_types_list = []
     for role in roles:
-        event_types = await role_event_type_repo.get_event_types_for_role(role_id=role.id)
+        event_types = await role_event_type_repo.get_event_types_for_role(role_id=role.id)  # type: ignore
         for event_type in event_types:
             event_types_list.append(event_type)
 

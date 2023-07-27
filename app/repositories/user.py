@@ -20,7 +20,9 @@ class UserRepository(BaseRepository):
         """Get all users from database"""
         self.logger.debug("Fetching all users from database")
 
-        stmt = sqlalchemy.select(User)
+        stmt = (sqlalchemy.select(User)
+                .where(~User.first_name.is_(None), ~User.last_name.is_(None))  # type: ignore
+                .order_by(User.id))
         query = await self.async_session.execute(statement=stmt)
         users = query.scalars().all()
 
@@ -47,7 +49,7 @@ class UserRepository(BaseRepository):
         """Get user by username from database"""
         self.logger.debug(f"Fetching user with username {username} from database")
 
-        stmt = sqlalchemy.select(User).where(User.username == username)
+        stmt = (sqlalchemy.select(User).where(User.username == username))
         query = await self.async_session.execute(statement=stmt)
         user = query.scalar()
 
@@ -72,9 +74,9 @@ class UserRepository(BaseRepository):
         self.logger.debug(f"Found user with username {user_login.username}. Verifying password...")
 
         if not pass_generator.is_password_authenticated(
-            salt=db_user.hash_salt,
-            password=user_login.password,
-            hashed_password=db_user.hashed_password,
+                salt=db_user.hash_salt,
+                password=user_login.password,
+                hashed_password=db_user.hashed_password,
         ):
             raise PasswordDoesNotMatch("Password does not match!")
 
@@ -86,7 +88,16 @@ class UserRepository(BaseRepository):
         """Create user"""
         self.logger.debug(f"Creating user with username {user_create.username}")
 
-        new_user = User(username=user_create.username)
+        # If user has firstname, user has to have lastname and visa versa, else raise exception
+        if (user_create.first_name is None and user_create.last_name is not None) or \
+                (user_create.first_name is not None and user_create.last_name is None):
+            raise ValueError("User has to have both first and last name or neither")
+
+        new_user = User(
+            username=user_create.username,
+            first_name=user_create.first_name,
+            last_name=user_create.last_name
+        )
         new_user.set_hash_salt(hash_salt=pass_generator.generate_salt)
         new_user.set_hashed_password(
             hashed_password=pass_generator.generate_hashed_password(
@@ -122,13 +133,21 @@ class UserRepository(BaseRepository):
 
         self.logger.debug(f"Found user with ID {user_id}")
 
-        update_stmt = sqlalchemy.update(User)\
-            .where(User.id == update_user.id)\
+        update_stmt = sqlalchemy.update(User) \
+            .where(User.id == update_user.id) \
             .values(updated_at=sqlalchemy_functions.now())
 
         if new_user_data.get("username"):
             self.logger.debug(f"Updating username to {new_user_data['username']}")
             update_stmt = update_stmt.values(username=new_user_data["username"])
+
+        if new_user_data.get("first_name"):
+            self.logger.debug(f"Updating first_name to {new_user_data['first_name']}")
+            update_stmt = update_stmt.values(first_name=new_user_data["first_name"])
+
+        if new_user_data.get("last_name"):
+            self.logger.debug(f"Updating last_name to {new_user_data['last_name']}")
+            update_stmt = update_stmt.values(last_name=new_user_data["last_name"])
 
         if new_user_data.get("password"):
             self.logger.debug(f"Updating password to '********' ;)")
@@ -265,7 +284,7 @@ class UserRepository(BaseRepository):
         self.logger.debug(f"Found role IDs for user with ID {user_id}")
 
         # Fetch the actual Role objects using the role_ids
-        roles_stmt = sqlalchemy.select(Role).where(Role.id.in_(role_ids))
+        roles_stmt = sqlalchemy.select(Role).where(Role.id.in_(role_ids))  # type: ignore
         roles_result = await self.async_session.execute(roles_stmt)
         roles = roles_result.scalars().all()
 
