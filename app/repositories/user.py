@@ -266,7 +266,8 @@ class UserRepository(BaseRepository):
         role_ids = [row[0] for row in result]
 
         if not role_ids:
-            raise EntityDoesNotExist(f"User has no roles!")
+            self.logger.debug(f"No roles found for user with ID {user_id}")
+            return []
 
         self.logger.debug(f"Found role IDs for user with ID {user_id}")
 
