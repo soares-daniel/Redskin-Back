@@ -1,9 +1,9 @@
 import fastapi
 
 from app.api.dependencies.logging import logging_dependency
-from app.api.routes import user, event, authentication, role, admin
+from app.api.routes import user, event, authentication, role, admin, assets
 
-routers = [user.router, event.router, authentication.router, role.router, admin.router]
+routers = [user.router, event.router, authentication.router, role.router, admin.router, assets.router]
 main_router = fastapi.APIRouter()
 
 # Global logging dependency, can be used in any router or endpoint individually

@@ -24,6 +24,7 @@ class BaseSettings(pydantic.BaseSettings):
     OPENAPI_URL: str = "/openapi.json"
     REDOC_URL: str = "/redoc"
     OPENAPI_PREFIX: str = ""
+    ASSETS_PATH: str = decouple.config("ASSETS_PATH", cast=str, default=str("../assets"))
 
     # Database
     DB_POSTGRES_NAME: str = decouple.config("POSTGRES_NAME", cast=str)

@@ -124,51 +124,38 @@ class UserRepository(BaseRepository):
 
         new_user_data = user_update.dict()
 
-        select_stmt = sqlalchemy.select(User).where(User.id == user_id)
-        query = await self.async_session.execute(statement=select_stmt)
-        update_user = query.scalar()
+        update_stmt = sqlalchemy.update(User).where(User.id == user_id)
 
-        if not update_user:
-            raise EntityDoesNotExist(f"User with id {user_id} does not exist!")
+        for field, value in new_user_data.items():
+            if value is not None:
+                if field == 'password':
+                    self.logger.debug(f"Updating password to '********' ;)")
+                    salt = pass_generator.generate_salt
+                    hashed_password = pass_generator.generate_hashed_password(salt, value)
+                    update_stmt = update_stmt.values(hash_salt=salt, hashed_password=hashed_password)
+                else:
+                    self.logger.debug(f"Updating {field} to {value}")
+                    update_stmt = update_stmt.values(**{field: value})
 
-        self.logger.debug(f"Found user with ID {user_id}")
+        update_stmt = update_stmt.values(updated_at=sqlalchemy_functions.now())
 
-        update_stmt = sqlalchemy.update(User) \
-            .where(User.id == update_user.id) \
-            .values(updated_at=sqlalchemy_functions.now())
-
-        if new_user_data.get("username"):
-            self.logger.debug(f"Updating username to {new_user_data['username']}")
-            update_stmt = update_stmt.values(username=new_user_data["username"])
-
-        if new_user_data.get("first_name"):
-            self.logger.debug(f"Updating first_name to {new_user_data['first_name']}")
-            update_stmt = update_stmt.values(first_name=new_user_data["first_name"])
-
-        if new_user_data.get("last_name"):
-            self.logger.debug(f"Updating last_name to {new_user_data['last_name']}")
-            update_stmt = update_stmt.values(last_name=new_user_data["last_name"])
-
-        if new_user_data.get("password"):
-            self.logger.debug(f"Updating password to '********' ;)")
-            update_stmt = update_stmt.values(
-                hash_salt=pass_generator.generate_salt,
-                hashed_password=pass_generator.generate_hashed_password(
-                    salt=update_user.hash_salt, password=new_user_data["password"]
-                ),
-            )
-
-        await self.async_session.execute(statement=update_stmt)
         try:
+            await self.async_session.execute(update_stmt)
             await self.async_session.commit()
-            await self.async_session.refresh(instance=update_user)
         except Exception as e:
             await self.async_session.rollback()
             raise e
 
-        self.logger.debug(f"Updated user with ID {user_id}")
+        # Fetch the updated user
+        select_stmt = sqlalchemy.select(User).where(User.id == user_id)
+        result = await self.async_session.execute(select_stmt)
+        updated_user = result.scalar()
 
-        return update_user
+        if not updated_user:
+            raise EntityDoesNotExist(f"User with id {user_id} does not exist!")
+
+        self.logger.debug(f"Updated user with ID {user_id}")
+        return updated_user
 
     async def delete_user_by_id(self, user_id: int) -> User:
         """Delete user by ID"""
@@ -291,3 +278,29 @@ class UserRepository(BaseRepository):
         self.logger.debug(f"Found roles for user with ID {user_id}")
 
         return roles
+
+    async def update_user_profile_pic(self, user_id: int, profile_pic: str) -> User:
+        """Update user profile picture url"""
+        self.logger.debug(f"Updating user with ID {user_id}")
+
+        select_stmt = sqlalchemy.select(User).where(User.id == user_id)
+        query = await self.async_session.execute(statement=select_stmt)
+        update_user = query.scalar()
+
+        if not update_user:
+            raise EntityDoesNotExist(f"User with id `{user_id}` does not exist!")
+
+        self.logger.debug(f"Found user with ID {user_id}")
+
+        stmt = sqlalchemy.update(User).where(User.id == user_id).values(profile_pic=profile_pic)
+
+        try:
+            await self.async_session.execute(stmt)
+            await self.async_session.commit()
+        except Exception as e:
+            await self.async_session.rollback()
+            raise e
+
+        self.logger.debug(f"Updated user with ID {user_id}")
+
+        return update_user

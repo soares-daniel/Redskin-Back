@@ -42,6 +42,7 @@ async def get_users(
             last_name=db_user.last_name,
             created_at=db_user.created_at,
             updated_at=db_user.updated_at,
+            profile_pic_url=db_user.profile_pic_url,
         )
         db_user_list.append(user)
 
@@ -71,6 +72,7 @@ async def get_user(
         last_name=db_user.last_name,
         created_at=db_user.created_at,
         updated_at=db_user.updated_at,
+        profile_pic_url=db_user.profile_pic_url,
     )
 
 
@@ -105,6 +107,7 @@ async def create_user(
         last_name=new_user.last_name,
         created_at=new_user.created_at,
         updated_at=new_user.updated_at,
+        profile_pic_url=new_user.profile_pic_url,
     )
 
     await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_CREATE)
@@ -149,6 +152,7 @@ async def update_user(
         last_name=updated_user.last_name,
         created_at=updated_user.created_at,
         updated_at=updated_user.updated_at,
+        profile_pic_url=updated_user.profile_pic_url,
     )
 
     await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_UPDATE)
@@ -181,6 +185,7 @@ async def delete_user(
         last_name=db_user.last_name,
         created_at=db_user.created_at,
         updated_at=db_user.updated_at,
+        profile_pic_url=db_user.profile_pic_url,
     )
 
     await notif_service.send_user_notification(user=response, event_operation=EventOperation.USER_DELETE)

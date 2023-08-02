@@ -48,6 +48,11 @@ class User(Base):
         server_onupdate=sqlalchemy.schema.FetchedValue(for_update=True),
         name="UPDATED_AT"
     )
+    profile_pic_url: SQLAlchemyMapped[str] = sqlalchemy_mapped_column(
+        sqlalchemy.String(length=1024),
+        nullable=True,
+        name="PROFILE_PIC_URL"
+    )
 
     # roles = sqlalchemy_relationship("Role", secondary=user_roles, back_populates="users")
 

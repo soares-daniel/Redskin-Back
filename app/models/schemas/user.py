@@ -15,6 +15,7 @@ class UserInUpdate(BaseSchemaModel):
     first_name: str | None
     last_name: str | None
     password: str | None
+    profile_pic_url: str | None
 
 
 class UserInLogin(BaseSchemaModel):
@@ -29,3 +30,4 @@ class UserInResponse(BaseSchemaModel):
     last_name: str | None
     created_at: datetime.datetime
     updated_at: datetime.datetime | None
+    profile_pic_url: str | None
