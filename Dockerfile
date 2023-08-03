@@ -16,5 +16,8 @@ COPY . .
 # Expose the port the server will be running on
 EXPOSE 8000
 
+# Update Database
+CMD ["alembic", "upgrade", "head"]
+
 # Set the entrypoint command for the container
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
