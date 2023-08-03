@@ -1,10 +1,11 @@
 import fastapi
 
 from app.api.dependencies.repository import get_repository
+from app.api.dependencies.role import is_user_in_role
 from app.api.dependencies.service import get_service
 from app.models.schemas.event_operation import EventOperation
 from app.models.schemas.role import RoleInCreate, RoleInResponse, RoleInUpdate
-from app.models.schemas.role_event_type import RoleEventTypeInResponse
+from app.models.schemas.role_event_type import RoleEventTypeInResponse, RoleEventTypeInCreate
 from app.repositories.role import RoleRepository
 from app.models.db.user import User
 from app.api.dependencies.authentication import get_current_user
@@ -153,3 +154,29 @@ async def get_permissions_by_role_id(
     db_event_types = await role_event_type_repo.get_permissions_by_role_id(role_id)
 
     return [RoleEventTypeInResponse.from_orm(role_event_type) for role_event_type in db_event_types]
+
+
+@router.post(
+    path="/role/{role_id}/permissions",
+    response_model=RoleEventTypeInResponse,
+    status_code=fastapi.status.HTTP_201_CREATED,
+    dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
+)
+async def create_permission(
+        role_event_type_create: RoleEventTypeInCreate,
+        role_event_type_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
+
+) -> RoleEventTypeInResponse:
+    """Create new permission"""
+
+    created_permission = await role_event_type_repo.create_permissions(permission_create=role_event_type_create)
+
+    response = RoleEventTypeInResponse.from_orm(created_permission)
+
+    await notif_service.send_permission_notification(
+        permission=response,
+        event_operation=EventOperation.PERMISSION_CREATE
+    )
+
+    return response

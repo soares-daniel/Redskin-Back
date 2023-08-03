@@ -2,7 +2,7 @@ import typing
 
 import sqlalchemy
 from sqlalchemy.sql import functions as sqlalchemy_functions
-
+from sqlalchemy import and_, select
 from app.models.schemas.user_role import UserRoleInAssign, UserRoleInRemove
 from app.repositories.base import BaseRepository
 from app.models.db.role import Role
@@ -235,9 +235,13 @@ class UserRepository(BaseRepository):
         self.logger.debug(f"Removing role with ID {role_id} from user with ID {user_id}")
 
         self.logger.debug(f"Checking if user with ID {user_id} exists")
-        stmt = sqlalchemy.select(user_roles).where(user_roles.c.USER_ID == user_id, user_roles.c.ROLE_ID == role_id)
+        stmt = select(User, Role). \
+            select_from(user_roles). \
+            join(User, User.id == user_roles.c.USER_ID). \
+            join(Role, Role.id == user_roles.c.ROLE_ID). \
+            where(and_(user_roles.c.USER_ID == user_id, user_roles.c.ROLE_ID == role_id))
         query = await self.async_session.execute(stmt)
-        user_role = query.scalar_one_or_none()
+        user_role = query.one_or_none()
 
         if user_role is None:
             raise EntityDoesNotExist(f"User with id {user_id} and Role with id {role_id} are not related!")
@@ -255,7 +259,7 @@ class UserRepository(BaseRepository):
 
         self.logger.debug(f"Removed role with ID {role_id} from user with ID {user_id}")
 
-        return UserRoleInRemove(username=user_role.username, role_name=user_role.role_name)
+        return UserRoleInRemove(username=user_role[0].username, role_name=user_role[1].name)
 
     async def get_roles_for_user(self, user_id: int) -> typing.Sequence[Role]:
         """Get roles for user"""

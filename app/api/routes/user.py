@@ -252,7 +252,6 @@ async def assign_role_to_user(
     path="/user/{user_id}/remove/{role_id}",
     response_model=UserRoleInRemove,
     status_code=fastapi.status.HTTP_200_OK,
-    dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
 )
 async def remove_role_from_user(
         user_id: int,
