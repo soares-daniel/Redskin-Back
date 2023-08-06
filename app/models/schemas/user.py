@@ -14,7 +14,6 @@ class UserInUpdate(BaseSchemaModel):
     username: str | None
     first_name: str | None
     last_name: str | None
-    password: str | None
     profile_pic_url: str | None
 
 

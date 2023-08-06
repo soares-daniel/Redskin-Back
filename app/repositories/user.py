@@ -124,20 +124,19 @@ class UserRepository(BaseRepository):
 
         new_user_data = user_update.dict()
 
-        update_stmt = sqlalchemy.update(User).where(User.id == user_id)
-
+        values_to_update = {}
         for field, value in new_user_data.items():
             if value is not None:
-                if field == 'password':
-                    self.logger.debug(f"Updating password to '********' ;)")
-                    salt = pass_generator.generate_salt
-                    hashed_password = pass_generator.generate_hashed_password(salt, value)
-                    update_stmt = update_stmt.values(hash_salt=salt, hashed_password=hashed_password)
-                else:
-                    self.logger.debug(f"Updating {field} to {value}")
-                    update_stmt = update_stmt.values(**{field: value})
+                self.logger.debug(f"Updating {field} to {value}")
+                values_to_update[field] = value
 
-        update_stmt = update_stmt.values(updated_at=sqlalchemy_functions.now())
+        values_to_update['updated_at'] = sqlalchemy_functions.now()
+
+        update_stmt = (
+            sqlalchemy.update(User)
+            .where(User.id == user_id)
+            .values(**values_to_update)
+        )
 
         try:
             await self.async_session.execute(update_stmt)
