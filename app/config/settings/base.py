@@ -26,6 +26,17 @@ class BaseSettings(pydantic.BaseSettings):
     OPENAPI_PREFIX: str = ""
     ASSETS_PATH: str = decouple.config("ASSETS_PATH", cast=str, default=str("../assets"))
 
+    # Discord
+    DISCORD_CLIENT_ID: str = decouple.config("DISCORD_CLIENT_ID", cast=str)  # type: ignore
+    DISCORD_SERVER_PORT: int = decouple.config("DISCORD_SERVER_PORT", cast=int)  # type: ignore
+    DISCORD_SERVER_HOST: str = decouple.config("DISCORD_SERVER_HOST", cast=str)  # type: ignore
+    DISCORD_NOTIFICATION_ENDPOINT: str = decouple.config("DISCORD_NOTIFICATION_ENDPOINT", cast=str)  # type: ignore
+    DISCORD_URL: str = f"http://{DISCORD_SERVER_HOST}:{DISCORD_SERVER_PORT}{DISCORD_NOTIFICATION_ENDPOINT}"
+
+    # Frontend
+    FRONTEND_HOST: str = decouple.config("FRONTEND_HOST", cast=str)  # type: ignore
+    FRONTEND_PORT: int = decouple.config("FRONTEND_PORT", cast=int)  # type: ignore
+
     # Database
     DB_POSTGRES_NAME: str = decouple.config("POSTGRES_NAME", cast=str)
     DB_POSTGRES_HOST: str = decouple.config("POSTGRES_HOST", cast=str)
@@ -56,9 +67,16 @@ class BaseSettings(pydantic.BaseSettings):
 
     IS_ALLOWED_CREDENTIALS: bool = decouple.config("IS_ALLOWED_CREDENTIALS", cast=bool)  # type: ignore
     ALLOWED_ORIGINS: List[str] = [
-        "http://localhost:3000",  # React default port
-        "http://0.0.0.0:3000",
-        "http://127.0.0.1:3000",  # React docker port
+        f"http://localhost:{FRONTEND_PORT}",
+        f"https://localhost:{FRONTEND_PORT}",
+        f"http://localhost:{DISCORD_SERVER_PORT}",
+        f"https://localhost:{DISCORD_SERVER_PORT}",
+        f"http://{FRONTEND_HOST}:{FRONTEND_PORT}",
+        f"https://{FRONTEND_HOST}:{FRONTEND_PORT}",
+        f"http://{DISCORD_SERVER_HOST}:{DISCORD_SERVER_PORT}",
+        f"https://{DISCORD_SERVER_HOST}:{DISCORD_SERVER_PORT}",
+        f"http://http://ec2-3-127-231-16.eu-central-1.compute.amazonaws.com:{FRONTEND_PORT}",
+        f"https://http://ec2-3-127-231-16.eu-central-1.compute.amazonaws.com:{FRONTEND_PORT}",
     ]
     ALLOWED_METHODS: List[str] = ["*"]
     ALLOWED_HEADERS: List[str] = ["*"]
@@ -72,13 +90,6 @@ class BaseSettings(pydantic.BaseSettings):
     HASHING_ALGORITHM_LAYER_2: str = decouple.config("HASHING_ALGORITHM_LAYER_2", cast=str)  # type: ignore
     HASHING_SALT: str = decouple.config("HASHING_SALT", cast=str)  # type: ignore
     JWT_ALGORITHM: str = decouple.config("JWT_ALGORITHM", cast=str)  # type: ignore
-
-    # Discord
-    DISCORD_CLIENT_ID: str = decouple.config("DISCORD_CLIENT_ID", cast=str)  # type: ignore
-    DISCORD_SERVER_PORT: int = decouple.config("DISCORD_SERVER_PORT", cast=int)  # type: ignore
-    DISCORD_SERVER_HOST: str = decouple.config("DISCORD_SERVER_HOST", cast=str)  # type: ignore
-    DISCORD_NOTIFICATION_ENDPOINT: str = decouple.config("DISCORD_NOTIFICATION_ENDPOINT", cast=str)  # type: ignore
-    DISCORD_URL: str = f"http://{DISCORD_SERVER_HOST}:{DISCORD_SERVER_PORT}{DISCORD_NOTIFICATION_ENDPOINT}"
 
     # Superuser
     SUPER_USER: str = decouple.config("SUPER_USER", cast=str)  # type: ignore

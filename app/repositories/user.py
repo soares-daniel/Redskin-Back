@@ -88,7 +88,7 @@ class UserRepository(BaseRepository):
         """Create user"""
         self.logger.debug(f"Creating user with username {user_create.username}")
 
-        # If user has firstname, user has to have lastname and visa versa, else raise exception
+        # If user has firstname, user has to have lastname and visa-versa, else raise exception
         if (user_create.first_name is None and user_create.last_name is not None) or \
                 (user_create.first_name is not None and user_create.last_name is None):
             raise ValueError("User has to have both first and last name or neither")
