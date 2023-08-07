@@ -116,30 +116,37 @@ class EventRepository(BaseRepository):
 
         new_event_data = event_update.dict()
 
-        select_stmt = sqlalchemy.select(Event).where(Event.id == event_id)
-        query = await self.async_session.execute(statement=select_stmt)
-        update_event = query.scalar()
+        values_to_update = {}
+        for field, value in new_event_data.items():
+            if value is not None:
+                self.logger.debug(f"Updating {field} to {value}")
+                values_to_update[field] = value
 
-        if not update_event:
-            raise EntityDoesNotExist(f"Event with id {event_id} does not exist!")
+        values_to_update['updated_at'] = sqlalchemy_functions.now()
 
-        self.logger.debug(f"Found event with ID {event_id}. Updating...")
+        update_stmt = (
+            sqlalchemy.update(Event)
+            .where(Event.id == event_id)
+            .values(**values_to_update)
+        )
 
-        update_stmt = sqlalchemy.update(Event)\
-            .where(Event.id == event_id)\
-            .values(updated_at=sqlalchemy_functions.now(), **new_event_data)
-
-        await self.async_session.execute(statement=update_stmt)
         try:
+            await self.async_session.execute(update_stmt)
             await self.async_session.commit()
-            await self.async_session.refresh(instance=update_event)
         except Exception as e:
             await self.async_session.rollback()
             raise e
 
-        self.logger.debug(f"Updated event with ID {event_id}")
+        # Fetch the updated event
+        select_stmt = sqlalchemy.select(Event).where(Event.id == event_id)
+        result = await self.async_session.execute(select_stmt)
+        updated_event = result.scalar()
 
-        return update_event
+        if not updated_event:
+            raise EntityDoesNotExist(f"Event with id {event_id} does not exist!")
+
+        self.logger.debug(f"Updated event with ID {event_id}")
+        return updated_event
 
     async def delete_event_by_id(self, event_id: int) -> Event:
         """Delete event by ID"""
