@@ -78,3 +78,138 @@ async def setup(
                 ))
 
     return "Setup complete!"
+
+
+@router.post(
+    path="/roles",
+    response_model=str,
+    status_code=fastapi.status.HTTP_201_CREATED,
+    dependencies=[fastapi.Depends(is_user_in_role(role="NEVERRR"))],
+)
+async def roles(
+        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository)),
+        event_type_repo: EventTypeRepository = fastapi.Depends(get_repository(repo_type=EventTypeRepository)),
+        role_event_type_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository))
+) -> str:
+    """Create a new role"""
+
+    role_names = ["chefleitung", "chef", "chefassistent", "committee", "chalet"]
+
+    roles = []
+    for role_name in role_names:
+        try:
+            role = await role_repo.get_role_by_name(role_name=role_name)
+        except EntityDoesNotExist:
+            role = await role_repo.create_role(role_create=RoleInCreate(name=role_name))
+        roles.append(role)
+
+    event_types = await event_type_repo.get_event_types()
+
+    for event_type in event_types:
+        if event_type.name == "scout_event":
+            for role in roles:
+                if role.name == "chefleitung":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=True,
+                            can_see=True,
+                            can_add=True
+                        ))
+                elif role.name == "chef":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=True,
+                            can_see=True,
+                            can_add=True
+                        ))
+                elif role.name == "chefassistent":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=False,
+                            can_see=True,
+                            can_add=False
+                        ))
+                elif role.name == "committee":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=False,
+                            can_see=True,
+                            can_add=False
+                        ))
+        elif event_type.name == "comitee_event":
+            for role in roles:
+                if role.name == "chefleitung":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=False,
+                            can_see=True,
+                            can_add=False
+                        ))
+                elif role.name == "committee":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=True,
+                            can_see=True,
+                            can_add=True
+                        ))
+        elif event_type.name == "chalet":
+            for role in roles:
+                if role.name == "chefleitung":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=False,
+                            can_see=True,
+                            can_add=False
+                        ))
+                elif role.name == "chalet":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=False,
+                            can_see=True,
+                            can_add=False
+                        ))
+                elif role.name == "chefassistent":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=False,
+                            can_see=True,
+                            can_add=False
+                        ))
+                elif role.name == "committee":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=False,
+                            can_see=True,
+                            can_add=False
+                        ))
+                elif role.name == "chalet":
+                    await role_event_type_repo.create_permissions(
+                        permission_create=RoleEventTypeInCreate(
+                            role_id=role.id,
+                            event_type_id=event_type.id,
+                            can_edit=True,
+                            can_see=True,
+                            can_add=True
+                        ))
+
+    return "Roles created!"
