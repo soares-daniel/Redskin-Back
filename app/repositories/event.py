@@ -9,6 +9,7 @@ from app.models.schemas.event import EventInCreate, EventInUpdate
 from app.repositories.role import RoleRepository
 from app.repositories.user import UserRepository
 from app.utilities.exceptions.database import EntityDoesNotExist
+from app.utilities.formatters.datetime_formatter import convert_to_utc
 
 
 class EventRepository(BaseRepository):
@@ -93,8 +94,8 @@ class EventRepository(BaseRepository):
             event_type=event_create.event_type,
             title=event_create.title,
             description=event_create.description,
-            start_date=event_create.start_date,
-            end_date=event_create.end_date,
+            start_date=convert_to_utc(event_create.start_date),
+            end_date=convert_to_utc(event_create.end_date),
         )
         new_event.created_at = sqlalchemy_functions.now()
 
@@ -115,6 +116,12 @@ class EventRepository(BaseRepository):
         self.logger.debug(f"Updating event with ID {event_id} with data {event_update}")
 
         new_event_data = event_update.dict()
+
+        if new_event_data.get("start_date"):
+            new_event_data['start_date'] = convert_to_utc(new_event_data['start_date'])
+        if new_event_data.get("end_date"):
+            new_event_data['end_date'] = convert_to_utc(new_event_data['end_date'])
+
 
         values_to_update = {}
         for field, value in new_event_data.items():
