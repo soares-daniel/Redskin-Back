@@ -44,3 +44,15 @@ async def login(
         created_at=db_user.created_at,
         updated_at=db_user.updated_at,
     )
+
+
+@router.post(
+    path="/logout",
+    name="auth:logout",
+    status_code=fastapi.status.HTTP_202_ACCEPTED,
+)
+async def logout(response: Response) -> dict[str, str]:
+    response.set_cookie(key="access_token", value="", httponly=True, max_age=0)
+
+    return {"message": "Successfully logged out"}
+
