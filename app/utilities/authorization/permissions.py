@@ -29,4 +29,4 @@ async def check_event_type_permission(
                 elif action == "edit":
                     if permission.can_see:
                         return
-    raise http_403_exc_permission_denied()
+    raise await http_403_exc_permission_denied()
