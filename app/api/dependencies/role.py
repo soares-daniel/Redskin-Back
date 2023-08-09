@@ -15,10 +15,10 @@ def is_user_in_role(role: str):
         try:
             roles = await user_repo.get_roles_for_user(user_id=current_user.id)
         except EntityDoesNotExist:
-            raise http_403_exc_missing_role()
+            raise await http_403_exc_missing_role()
 
         for entry in roles:
             if entry.name == role:
                 return current_user
-        raise http_403_exc_missing_role()
+        raise await http_403_exc_missing_role()
     return _is_user_in_role
