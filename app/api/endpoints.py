@@ -1,11 +1,15 @@
 import fastapi
 
 from app.api.dependencies.logging import logging_dependency
-from app.api.routes import user, event, authentication, role, admin, assets
+from app.api.dependencies.authentication import get_current_user
+from app.api.routes import user, event, authentication, role, assets, admin, setup
 
-routers = [user.router, event.router, authentication.router, role.router, admin.router, assets.router]
+routers = [user.router, event.router, role.router, setup.router, assets.router, admin.router]
 main_router = fastapi.APIRouter()
 
-# Global logging dependency, can be used in any router or endpoint individually
 for router in routers:
-    main_router.include_router(router, dependencies=[fastapi.Depends(logging_dependency)])
+    main_router.include_router(router, dependencies=[fastapi.Depends(logging_dependency),
+                                                     fastapi.Depends(get_current_user)])
+
+# Include authentication router in main router without verifying the user
+main_router.include_router(authentication.router, dependencies=[fastapi.Depends(logging_dependency)])
