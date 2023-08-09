@@ -1,10 +1,8 @@
 import fastapi
 
-from app.api.dependencies.authentication import get_current_user
 from app.api.dependencies.repository import get_repository
 from app.api.dependencies.role import is_user_in_role
 from app.api.dependencies.service import get_service
-from app.models.db.user import User
 from app.models.schemas.event_operation import EventOperation
 from app.models.schemas.role import RoleInResponse, RoleInUpdate, RoleInCreate
 from app.models.schemas.role_event_type import RoleEventTypeInResponse, RoleEventTypeInCreate
