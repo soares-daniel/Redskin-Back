@@ -1,12 +1,17 @@
 import fastapi
 
+from app.api.dependencies.authentication import get_current_user
 from app.api.dependencies.repository import get_repository
 from app.api.dependencies.role import is_user_in_role
 from app.api.dependencies.service import get_service
+from app.models.db.user import User
 from app.models.schemas.event_operation import EventOperation
-from app.models.schemas.role import RoleInResponse
+from app.models.schemas.role import RoleInResponse, RoleInUpdate, RoleInCreate
+from app.models.schemas.role_event_type import RoleEventTypeInResponse, RoleEventTypeInCreate
 from app.models.schemas.user import UserInResponse, UserInUpdate, UserInCreate
 from app.models.schemas.user_role import UserRoleInAssign, UserRoleInRemove
+from app.repositories.role import RoleRepository
+from app.repositories.role_event_type import RoleEventTypeRepository
 from app.repositories.user import UserRepository
 from app.services.notification import NotificationService
 from app.utilities.exceptions.database import EntityDoesNotExist, EntityAlreadyExists
@@ -235,3 +240,103 @@ async def remove_role_from_user(
     )
 
     return user_role
+
+
+@router.post(
+    path="/roles/create",
+    response_model=RoleInResponse,
+    status_code=fastapi.status.HTTP_201_CREATED,
+)
+async def create_role(
+        role_create: RoleInCreate,
+        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
+) -> RoleInResponse:
+    """Create new role"""
+
+    created_role = await role_repo.create_role(role_create=role_create)
+
+    response = RoleInResponse.from_orm(created_role)
+
+    await notif_service.send_role_notification(role=response, event_operation=EventOperation.ROLE_CREATE)
+
+    return response
+
+
+@router.put(
+    path="/roles/update/{role_id}",
+    response_model=RoleInResponse,
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def update_role(
+        role_id: int,
+        role_update: RoleInUpdate,
+        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
+) -> RoleInResponse:
+    """Update role"""
+    try:
+        await role_repo.get_role_by_id(role_id)
+    except EntityDoesNotExist:
+        raise await http_404_exc_user_id_not_found_request(_id=role_id)
+
+    updated_role = await role_repo.update_role_by_id(role_id=role_id, role_update=role_update)
+
+    if updated_role is None:
+        raise await http_500_exc_internal_server_error()
+
+    response = RoleInResponse.from_orm(updated_role)
+
+    await notif_service.send_role_notification(role=response, event_operation=EventOperation.ROLE_UPDATE)
+
+    return response
+
+
+@router.delete(
+    path="/roles/delete/{role_id}",
+    response_model=RoleInResponse,
+    status_code=fastapi.status.HTTP_200_OK,
+)
+async def delete_role(
+        role_id: int,
+        role_repo: RoleRepository = fastapi.Depends(get_repository(repo_type=RoleRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
+) -> RoleInResponse:
+    """Delete role"""
+
+    deleted_role = await role_repo.delete_role_by_id(role_id)
+
+    if deleted_role is None:
+        raise fastapi.HTTPException(status_code=404, detail="Role not found")
+
+    response = RoleInResponse.from_orm(deleted_role)
+
+    await notif_service.send_role_notification(role=response, event_operation=EventOperation.ROLE_DELETE)
+
+    return response
+
+
+@router.post(
+    path="/roles/{role_id}/permissions",
+    response_model=RoleEventTypeInResponse,
+    status_code=fastapi.status.HTTP_201_CREATED,
+    dependencies=[fastapi.Depends(is_user_in_role(role="admin"))],
+)
+async def create_permission(
+        role_event_type_create: RoleEventTypeInCreate,
+        role_event_type_repo: RoleEventTypeRepository = fastapi.Depends(get_repository(repo_type=RoleEventTypeRepository)),
+        notif_service: NotificationService = fastapi.Depends(get_service(service_type=NotificationService))
+
+) -> RoleEventTypeInResponse:
+    """Create new permission"""
+
+    created_permission = await role_event_type_repo.create_permissions(permission_create=role_event_type_create)
+
+    response = RoleEventTypeInResponse.from_orm(created_permission)
+
+    await notif_service.send_permission_notification(
+        permission=response,
+        event_operation=EventOperation.PERMISSION_CREATE
+    )
+
+    return response
