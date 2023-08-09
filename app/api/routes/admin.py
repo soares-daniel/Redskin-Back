@@ -114,7 +114,7 @@ async def create_user(
     return response
 
 
-@router.post(
+@router.put(
     path="/update/user/{user_id}",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_200_OK,
@@ -159,7 +159,7 @@ async def update_user(
     return response
 
 
-@router.post(
+@router.delete(
     path="/delete/user/{user_id}",
     response_model=UserInResponse,
     status_code=fastapi.status.HTTP_200_OK,
