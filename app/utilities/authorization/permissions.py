@@ -22,11 +22,12 @@ async def check_event_type_permission(
             if permission.event_type_id == event_type:
                 if action == "add":
                     if permission.can_add:
+
                         return
                 elif action == "see":
                     if permission.can_see:
                         return
                 elif action == "edit":
-                    if permission.can_see:
+                    if permission.can_edit:
                         return
     raise await http_403_exc_permission_denied()
