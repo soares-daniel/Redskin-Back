@@ -23,6 +23,7 @@ router = fastapi.APIRouter(prefix="/events", tags=["events"])
     path="",
     response_model=list[EventInResponse],
     status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(get_current_user)]
 )
 async def get_events(
         event_repo: EventRepository = fastapi.Depends(get_repository(repo_type=EventRepository))
@@ -37,6 +38,7 @@ async def get_events(
     path="/event/{event_id}",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(get_current_user)]
 )
 async def get_event(
         event_id: int,
@@ -55,6 +57,7 @@ async def get_event(
     path="/user",
     response_model=list[EventInResponse],
     status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(get_current_user)]
 )
 async def get_events_for_user(
         current_user: User = fastapi.Depends(get_current_user),
@@ -84,6 +87,7 @@ async def get_events_for_user(
     path="/user/{event_id}",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(get_current_user)]
 )
 async def get_event_for_user(
         event_id: int,
@@ -123,6 +127,7 @@ async def get_event_for_user(
     path="/create",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_201_CREATED,
+    dependencies=[fastapi.Depends(get_current_user)]
 )
 async def create_event(
         event_create: EventInCreate,
@@ -163,6 +168,7 @@ async def create_event(
     path="/update/{event_id}",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(get_current_user)]
 )
 async def update_event(
         event_id: int,
@@ -210,6 +216,7 @@ async def update_event(
     path="/delete/{event_id}",
     response_model=EventInResponse,
     status_code=fastapi.status.HTTP_200_OK,
+    dependencies=[fastapi.Depends(get_current_user)]
 )
 async def delete_event(
         event_id: int,

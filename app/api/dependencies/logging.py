@@ -12,3 +12,4 @@ async def logging_dependency(request: fastapi.Request):
     routes_logger.debug("Headers:")
     for name, value in request.headers.items():
         routes_logger.debug(f"\t{name}: {value}")
+
