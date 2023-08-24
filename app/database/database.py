@@ -20,11 +20,10 @@ class AsyncDatabase:
         port = settings.DB_POSTGRES_PORT
         user = settings.DB_POSTGRES_USER
         password = settings.DB_POSTGRES_PASSWORD
-        uri = f"postgresql+asyncpg://{user}:{password}@{host}/{name}"
-        # if settings.DEBUG:
-        #    uri = f"postgresql+asyncpg://{user}:{password}@{host}/{name}"
-        # else:
-        #    uri = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{name}"
+        if settings.DEBUG:
+            uri = f"postgresql+asyncpg://{user}:{password}@{host}/{name}"
+        else:
+            uri = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{name}"
         self.postgres_uri: pydantic.PostgresDsn = pydantic.PostgresDsn(
             url=uri,
             scheme=settings.DB_POSTGRES_SCHEMA,
